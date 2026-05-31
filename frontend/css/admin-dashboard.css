@@ -468,3 +468,15 @@ tr:hover td { background: #f8fafc; }
 .report-summary { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 24px; }
 .report-stat { display: flex; align-items: center; gap: 14px; background: var(--card-bg); border-radius: var(--radius); padding: 16px; box-shadow: var(--shadow); }
 .report-stat .stat-info small { color: var(--text-muted); font-size: 12px; display: block; margin-top: 2px; }
+
+/* ── Expense Tracker ─────────────────────────────────── */
+.exchange-bar { display:flex; align-items:center; gap:10px; margin-bottom:16px; font-size:14px; }
+.expense-form { display:flex; flex-wrap:wrap; gap:10px; align-items:center; background:var(--card-bg); padding:16px; border-radius:var(--radius); box-shadow:var(--shadow); margin-bottom:16px; }
+.expense-form input, .expense-form select { padding:8px 10px; border:1px solid var(--border); border-radius:6px; font-size:13px; background:var(--bg-secondary); color:var(--text-primary); }
+.exp-amount-wrap { display:flex; align-items:center; gap:8px; }
+.exp-usd-preview { font-weight:600; color:var(--success); font-size:13px; white-space:nowrap; }
+.expense-totals { display:flex; gap:16px; margin-bottom:16px; }
+.exp-total-item { background:var(--card-bg); border-radius:var(--radius); padding:14px 20px; box-shadow:var(--shadow); display:flex; flex-direction:column; gap:4px; font-size:13px; }
+.exp-total-item strong { font-size:18px; color:var(--primary); }
+.report-summary { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin-bottom:24px; }
+@media(max-width:900px){ .report-summary { grid-template-columns:repeat(2,1fr); } }

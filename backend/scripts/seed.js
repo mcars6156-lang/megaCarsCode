@@ -3,7 +3,6 @@ require('dotenv').config({ path: require('path').join(__dirname, '../.env') });
 const mongoose = require('mongoose');
 const Car  = require('../models/Car');
 const User = require('../models/User');
-const bcrypt = require('bcryptjs');
 
 const cars = [
   { brand: 'Toyota',   model: 'Camry',       year: 2022, price: 24000, mileage: 18000, color: 'White',      fuel: 'petrol',   transmission: 'automatic', bodyType: 'sedan',    condition: 'used',      status: 'available', description: 'Well maintained, single owner, full service history.' },
@@ -25,7 +24,7 @@ const cars = [
 
 const users = [
   { name: 'Admin User',  email: 'admin@megacars.com',  phone: '+964 750 000 0001', password: 'Admin@1234',  role: 'admin', city: 'Dohok', address: 'Dohok, Iraq' },
-  { name: 'Staff Member',email: 'staff@megacars.com',  phone: '+964 750 000 0002', password: 'Staff@1234',  role: 'staff', city: 'Dohok', address: 'Dohok, Iraq' },
+  { name: 'Staff Member',email: 'staff@megacars.com',  phone: '+964 750 000 0002', password: 'Staff@1234',  role: 'user',  city: 'Dohok', address: 'Dohok, Iraq' },
   { name: 'John Smith',  email: 'john@example.com',    phone: '+964 750 111 1111', password: 'User@1234',   role: 'user',  city: 'Dohok', address: '12 Main St, Dohok' },
 ];
 
@@ -43,11 +42,14 @@ async function seed() {
     for (const u of users) {
       const exists = await User.findOne({ email: u.email });
       if (!exists) {
-        const hash = await bcrypt.hash(u.password, 10);
-        await User.create({ ...u, password: hash });
+        await User.create(u); // pre('save') hook handles hashing
         console.log(`✔ Created user: ${u.email}`);
       } else {
-        console.log(`– User already exists: ${u.email}`);
+        // Re-set password so it gets hashed correctly
+        const doc = await User.findOne({ email: u.email });
+        doc.password = u.password;
+        await doc.save();
+        console.log(`✔ Reset password for: ${u.email}`);
       }
     }
 

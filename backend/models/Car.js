@@ -17,6 +17,10 @@ const CarSchema = new mongoose.Schema({
     type: Number,
     required: true
   },
+  costPrice: {
+    type: Number,
+    default: 0
+  },
   mileage: {
     type: Number,
     required: true

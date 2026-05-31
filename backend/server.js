@@ -29,6 +29,7 @@ app.use('/api/sales', require('./routes/sales'));
 app.use('/api/users', require('./routes/users'));
 app.use('/api/admin', require('./routes/admin'));
 app.use('/api/customization', require('./routes/customization'));
+app.use('/api/expenses', require('./routes/expenses'));
 
 // Serve frontend static files
 app.use(express.static(path.join(__dirname, '../frontend')));

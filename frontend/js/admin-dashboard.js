@@ -20,17 +20,19 @@ function showAdminSection(sectionId, e) {
 
     const titles = {
         'dashboard': t('admin.section.dashboard'),
-        'cars': t('admin.section.cars'),
-        'users': t('admin.section.users'),
-        'sales': t('admin.section.sales'),
-        'settings': t('admin.section.settings')
+        'cars':      t('admin.section.cars'),
+        'users':     t('admin.section.users'),
+        'sales':     t('admin.section.sales'),
+        'expenses':  t('admin.menu.expenses'),
+        'settings':  t('admin.section.settings')
     };
     document.getElementById('adminPageTitle').textContent = titles[sectionId] || t('admin.section.dashboard');
 
     if (sectionId === 'dashboard') loadAdminDashboard();
-    if (sectionId === 'cars') loadAdminCars();
-    if (sectionId === 'users') loadAdminUsers();
-    if (sectionId === 'sales') loadAdminSalesReports();
+    if (sectionId === 'cars')      loadAdminCars();
+    if (sectionId === 'users')     loadAdminUsers();
+    if (sectionId === 'sales')     loadAdminSalesReports();
+    if (sectionId === 'expenses')  { loadExpenses(); initExpenseDate(); }
 }
 
 function updateAdminWelcome() {
@@ -80,11 +82,132 @@ async function loadAdminDashboard() {
             headers: { 'Authorization': `Bearer ${token}` }
         });
         const stats = await response.json();
-        document.getElementById('statsUsers').textContent = stats.totalUsers ?? 0;
-        document.getElementById('statsCars').textContent = stats.totalCars ?? 0;
-        document.getElementById('statsSales').textContent = stats.totalSales ?? 0;
+        document.getElementById('statsUsers').textContent   = stats.totalUsers ?? 0;
+        document.getElementById('statsCars').textContent    = stats.totalCars ?? 0;
+        document.getElementById('statsSales').textContent   = stats.totalSales ?? 0;
         document.getElementById('statsRevenue').textContent = '$' + (stats.totalRevenue ?? 0).toLocaleString();
     } catch (error) { console.error('Error loading dashboard:', error); }
+}
+
+// ── Expenses ──────────────────────────────────────────────
+
+function getExchangeRate() {
+    return parseFloat(document.getElementById('exchangeRate')?.value) || 1490;
+}
+
+function updateExpUSD() {
+    const iqd  = parseFloat(document.getElementById('expAmountIQD')?.value) || 0;
+    const rate = getExchangeRate();
+    const usd  = (iqd / rate).toFixed(2);
+    const el   = document.getElementById('expUSDPreview');
+    if (el) el.textContent = `= $${Number(usd).toLocaleString()}`;
+}
+
+async function loadExpenses() {
+    try {
+        const token = localStorage.getItem('token');
+        const res   = await fetch(`${API_BASE_URL}/expenses`, { headers: { 'Authorization': `Bearer ${token}` } });
+        const expenses = await res.json();
+
+        const totalIQD = expenses.reduce((s, e) => s + (e.amountIQD || 0), 0);
+        const totalUSD = expenses.reduce((s, e) => s + (e.amountUSD || 0), 0);
+
+        const totalsEl = document.getElementById('expenseTotals');
+        if (totalsEl) totalsEl.innerHTML = `
+            <div class="exp-total-item">
+                <span>${t('exp.totalIQD')}</span>
+                <strong>${totalIQD.toLocaleString()} IQD</strong>
+            </div>
+            <div class="exp-total-item">
+                <span>${t('exp.totalUSD')}</span>
+                <strong>$${totalUSD.toLocaleString()}</strong>
+            </div>
+            <div class="exp-total-item">
+                <span>${t('exp.count')}</span>
+                <strong>${expenses.length}</strong>
+            </div>`;
+
+        const listEl = document.getElementById('expensesList');
+        if (!listEl) return;
+        if (!expenses.length) { listEl.innerHTML = `<p style="color:var(--text-muted);padding:20px">–</p>`; return; }
+
+        listEl.innerHTML = `<table>
+            <thead><tr>
+                <th>${t('exp.date')}</th>
+                <th>${t('exp.desc')}</th>
+                <th>${t('exp.category')}</th>
+                <th>${t('exp.amountIQD')}</th>
+                <th>${t('exp.amountUSD')}</th>
+                <th>${t('exp.payment')}</th>
+                <th></th>
+            </tr></thead>
+            <tbody>${expenses.map(e => `
+                <tr>
+                    <td>${new Date(e.date).toLocaleDateString()}</td>
+                    <td><strong>${e.description}</strong></td>
+                    <td><span class="status-badge pending">${e.category}</span></td>
+                    <td>${(e.amountIQD || 0).toLocaleString()} IQD</td>
+                    <td><strong>$${(e.amountUSD || 0).toLocaleString()}</strong></td>
+                    <td>${e.paymentMethod?.replace('_', ' ') || '–'}</td>
+                    <td><button class="btn btn-danger btn-small" onclick="deleteExpense('${e._id}')">
+                        <i class="fas fa-trash"></i>
+                    </button></td>
+                </tr>`).join('')}
+            </tbody></table>`;
+    } catch (err) { console.error('Error loading expenses:', err); }
+}
+
+async function addExpense() {
+    const desc   = document.getElementById('expDesc')?.value.trim();
+    const amtIQD = parseFloat(document.getElementById('expAmountIQD')?.value) || 0;
+    const rate   = getExchangeRate();
+    const payment = document.getElementById('expPayment')?.value || 'cash_iqd';
+
+    if (!desc) { alert(t('exp.descRequired')); return; }
+    if (!amtIQD) { alert(t('exp.amountRequired')); return; }
+
+    let amountIQD = 0, amountUSD = 0;
+    if (payment === 'cash_usd') {
+        amountUSD = amtIQD;
+        amountIQD = Math.round(amtIQD * rate);
+    } else {
+        amountIQD = amtIQD;
+        amountUSD = parseFloat((amtIQD / rate).toFixed(2));
+    }
+
+    const data = {
+        description:   desc,
+        category:      document.getElementById('expCategory')?.value || 'other',
+        date:          document.getElementById('expDate')?.value || new Date().toISOString(),
+        amountIQD,
+        amountUSD,
+        exchangeRate:  rate,
+        paymentMethod: payment
+    };
+
+    try {
+        const token = localStorage.getItem('token');
+        const res   = await fetch(`${API_BASE_URL}/expenses`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+            body: JSON.stringify(data)
+        });
+        if (res.ok) {
+            document.getElementById('expDesc').value      = '';
+            document.getElementById('expAmountIQD').value = '';
+            document.getElementById('expUSDPreview').textContent = '= $0';
+            loadExpenses();
+        } else { const e = await res.json(); alert(e.message || t('exp.addFailed')); }
+    } catch (err) { console.error(err); alert(t('exp.addFailed')); }
+}
+
+async function deleteExpense(id) {
+    if (!confirm(t('exp.deleteConfirm'))) return;
+    try {
+        const token = localStorage.getItem('token');
+        await fetch(`${API_BASE_URL}/expenses/${id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
+        loadExpenses();
+    } catch (err) { console.error(err); }
 }
 
 function showAddCarForm() { document.getElementById('addCarForm').classList.remove('hidden'); }
@@ -172,73 +295,84 @@ async function loadAdminUsers() {
 
 async function loadAdminSalesReports() {
     try {
-        const token = localStorage.getItem('token');
-        const response = await fetch(`${API_BASE_URL}/admin/reports/sales`, {
-            headers: { 'Authorization': `Bearer ${token}` }
-        });
-        const sales = await response.json();
-        if (!Array.isArray(sales) || sales.length === 0) {
-            document.getElementById('salesReport').innerHTML = `<p style="color:var(--text-muted);padding:20px">–</p>`;
-            return;
-        }
-
-        const cashTypes  = ['cash', 'check', 'bank_transfer'];
-        const cashSales  = sales.filter(s => cashTypes.includes(s.paymentMethod));
-        const instSales  = sales.filter(s => s.paymentMethod === 'installment');
-        const cashTotal  = cashSales.reduce((sum, s) => sum + (s.salePrice || 0), 0);
-        const instTotal  = instSales.reduce((sum, s) => sum + (s.salePrice || 0), 0);
-        const totalRev   = cashTotal + instTotal;
+        const token   = localStorage.getItem('token');
+        const headers = { 'Authorization': `Bearer ${token}` };
+        const [finRes, salesRes] = await Promise.all([
+            fetch(`${API_BASE_URL}/admin/reports/financial`, { headers }),
+            fetch(`${API_BASE_URL}/admin/reports/sales`,     { headers })
+        ]);
+        const fin   = await finRes.json();
+        const sales = await salesRes.json();
+        const profitColor = (fin.netProfit || 0) >= 0 ? 'green' : 'red';
 
         document.getElementById('salesReport').innerHTML = `
             <div class="report-summary">
                 <div class="report-stat">
                     <div class="stat-icon green"><i class="fas fa-money-bill-wave"></i></div>
-                    <div class="stat-info">
-                        <h3>${t('report.cashTotal')}</h3>
-                        <p>$${cashTotal.toLocaleString()}</p>
-                        <small>${cashSales.length} ${t('report.deals')}</small>
-                    </div>
+                    <div class="stat-info"><h3>${t('report.cashTotal')}</h3>
+                        <p>$${(fin.cashRev||0).toLocaleString()}</p>
+                        <small>${fin.cashCount||0} ${t('report.deals')}</small></div>
                 </div>
                 <div class="report-stat">
                     <div class="stat-icon blue"><i class="fas fa-credit-card"></i></div>
-                    <div class="stat-info">
-                        <h3>${t('report.installTotal')}</h3>
-                        <p>$${instTotal.toLocaleString()}</p>
-                        <small>${instSales.length} ${t('report.deals')}</small>
-                    </div>
+                    <div class="stat-info"><h3>${t('report.installTotal')}</h3>
+                        <p>$${(fin.instRev||0).toLocaleString()}</p>
+                        <small>${fin.instCount||0} ${t('report.deals')}</small></div>
                 </div>
                 <div class="report-stat">
                     <div class="stat-icon amber"><i class="fas fa-chart-line"></i></div>
-                    <div class="stat-info">
-                        <h3>${t('report.revenue')}</h3>
-                        <p>$${totalRev.toLocaleString()}</p>
-                        <small>${sales.length} ${t('report.totalDeals')}</small>
-                    </div>
+                    <div class="stat-info"><h3>${t('report.revenue')}</h3>
+                        <p>$${(fin.totalRev||0).toLocaleString()}</p>
+                        <small>${fin.totalSales||0} ${t('report.totalDeals')}</small></div>
+                </div>
+                <div class="report-stat">
+                    <div class="stat-icon orange"><i class="fas fa-car"></i></div>
+                    <div class="stat-info"><h3>${t('report.totalCost')}</h3>
+                        <p>$${(fin.totalCost||0).toLocaleString()}</p>
+                        <small>${t('report.carsCost')}</small></div>
+                </div>
+                <div class="report-stat">
+                    <div class="stat-icon red"><i class="fas fa-receipt"></i></div>
+                    <div class="stat-info"><h3>${t('report.expenses')}</h3>
+                        <p>$${(fin.totalExp||0).toLocaleString()}</p>
+                        <small>${t('report.expensesLabel')}</small></div>
+                </div>
+                <div class="report-stat">
+                    <div class="stat-icon ${profitColor}"><i class="fas fa-chart-bar"></i></div>
+                    <div class="stat-info"><h3>${t('report.netProfit')}</h3>
+                        <p style="color:var(--${profitColor==='green'?'success':'danger'})">$${(fin.netProfit||0).toLocaleString()}</p>
+                        <small>${fin.profitPct||0}%</small></div>
                 </div>
             </div>
+            ${Array.isArray(sales) && sales.length ? `
             <table>
                 <thead><tr>
-                    <th>${t('admin.sales.car')}</th>
-                    <th>${t('admin.sales.buyer')}</th>
-                    <th>${t('admin.sales.price')}</th>
-                    <th>${t('admin.sales.date')}</th>
-                    <th>${t('admin.sales.payment')}</th>
-                    <th>${t('admin.sales.status')}</th>
-                    <th>${t('admin.sales.actions')}</th>
+                    <th>${t('admin.sales.car')}</th><th>${t('admin.sales.buyer')}</th>
+                    <th>${t('report.totalCost')}</th><th>${t('admin.sales.price')}</th>
+                    <th>${t('report.netProfit')}</th><th>${t('admin.sales.date')}</th>
+                    <th>${t('admin.sales.payment')}</th><th>${t('admin.sales.status')}</th>
                 </tr></thead>
-                <tbody>${sales.map(sale => `
-                    <tr>
-                        <td><strong>${sale.car?.brand || ''} ${sale.car?.model || ''}</strong></td>
-                        <td>${sale.buyer?.name || '–'}</td>
-                        <td><strong>$${sale.salePrice?.toLocaleString()}</strong></td>
-                        <td>${new Date(sale.saleDate).toLocaleDateString()}</td>
-                        <td>${sale.paymentMethod || '–'}</td>
-                        <td>${statusBadge(sale.status)}</td>
-                        <td><button class="btn btn-secondary btn-small">${t('admin.sales.view')}</button></td>
-                    </tr>`).join('')}
-                </tbody>
-            </table>`;
+                <tbody>${sales.map(s => {
+                    const cost = s.car?.costPrice || 0;
+                    const profit = (s.salePrice||0) - cost;
+                    const pct = cost > 0 ? ((profit/cost)*100).toFixed(0)+'%' : '';
+                    return `<tr>
+                        <td><strong>${s.car?.brand||''} ${s.car?.model||''}</strong></td>
+                        <td>${s.buyer?.name||'–'}</td>
+                        <td>$${cost.toLocaleString()}</td>
+                        <td><strong>$${(s.salePrice||0).toLocaleString()}</strong></td>
+                        <td style="color:var(--${profit>=0?'success':'danger'})"><strong>$${profit.toLocaleString()} ${pct}</strong></td>
+                        <td>${new Date(s.saleDate).toLocaleDateString()}</td>
+                        <td>${s.paymentMethod||'–'}</td>
+                        <td>${statusBadge(s.status)}</td>
+                    </tr>`;}).join('')}
+                </tbody></table>` : '<p style="color:var(--text-muted);padding:20px">–</p>'}`;
     } catch (error) { console.error('Error loading sales reports:', error); }
+}
+
+function initExpenseDate() {
+    const el = document.getElementById('expDate');
+    if (el && !el.value) el.value = new Date().toISOString().split('T')[0];
 }
 
 async function deleteCar(carId) {
