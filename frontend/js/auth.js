@@ -1,4 +1,4 @@
-const API_BASE_URL = 'http://localhost:3000/api';
+var API_BASE_URL = '/api';
 
 document.getElementById('registerForm')?.addEventListener('submit', async (e) => {
     e.preventDefault();

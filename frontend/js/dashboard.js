@@ -1,5 +1,3 @@
-const API_BASE_URL = 'http://localhost:3000/api';
-
 function ensureAuth() {
     const user = localStorage.getItem('user');
     if (!user) { window.location.href = 'login.html'; return null; }

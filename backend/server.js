@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
 const mongoose = require('mongoose');
+const path = require('path');
 
 dotenv.config();
 
@@ -29,9 +30,12 @@ app.use('/api/users', require('./routes/users'));
 app.use('/api/admin', require('./routes/admin'));
 app.use('/api/customization', require('./routes/customization'));
 
-// Basic route
-app.get('/', (req, res) => {
-  res.json({ message: 'Mega Car Dealership API' });
+// Serve frontend static files
+app.use(express.static(path.join(__dirname, '../frontend')));
+
+// Fallback: serve index.html for any unmatched route
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, '../frontend/index.html'));
 });
 
 const PORT = process.env.PORT || 5000;
