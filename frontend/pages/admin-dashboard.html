@@ -348,31 +348,205 @@
             <section id="settings" class="admin-section hidden">
                 <div class="section-header">
                     <h3 class="section-title"><i class="fas fa-cog"></i> <span data-i18n="admin.settings.title">إعدادات النظام</span></h3>
+                    <div style="display:flex;gap:10px">
+                        <button class="btn btn-secondary" onclick="resetCustomization()">
+                            <i class="fas fa-undo"></i> <span data-i18n="settings.reset">Reset to Default</span>
+                        </button>
+                        <button class="btn btn-primary" onclick="saveAllSettings()">
+                            <i class="fas fa-save"></i> <span data-i18n="settings.saveAll">Save All Settings</span>
+                        </button>
+                    </div>
                 </div>
-                <div class="settings-card">
-                    <form id="systemSettingsForm" class="settings-form">
-                        <div class="form-group">
-                            <label data-i18n="admin.settings.companyName">اسم الشركة</label>
-                            <input type="text" value="Mega Cars">
+
+                <!-- Tab navigation -->
+                <div class="settings-tabs">
+                    <button class="settings-tab active" onclick="showSettingsTab('company', event)"><i class="fas fa-building"></i> <span data-i18n="settings.tab.company">Company</span></button>
+                    <button class="settings-tab" onclick="showSettingsTab('appearance', event)"><i class="fas fa-palette"></i> <span data-i18n="settings.tab.appearance">Appearance</span></button>
+                    <button class="settings-tab" onclick="showSettingsTab('typography', event)"><i class="fas fa-text-height"></i> <span data-i18n="settings.tab.typography">Typography</span></button>
+                    <button class="settings-tab" onclick="showSettingsTab('layout', event)"><i class="fas fa-th-large"></i> <span data-i18n="settings.tab.layout">Layout</span></button>
+                    <button class="settings-tab" onclick="showSettingsTab('finance', event)"><i class="fas fa-coins"></i> <span data-i18n="settings.tab.finance">Finance</span></button>
+                </div>
+
+                <!-- Company Tab -->
+                <div class="settings-tab-content" id="settingsCompany">
+                    <div class="settings-card">
+                        <h4 class="settings-card-title"><i class="fas fa-building"></i> <span data-i18n="settings.company.title">Company Information</span></h4>
+                        <div class="form-row">
+                            <div class="form-group"><label data-i18n="admin.settings.companyName">Company Name</label><input type="text" id="setCompanyName" value="Mega Cars"></div>
+                            <div class="form-group"><label data-i18n="admin.settings.location">Location</label><input type="text" id="setCompanyLocation" value="Dohok, Iraq"></div>
+                            <div class="form-group"><label data-i18n="admin.settings.phone">Phone 1</label><input type="tel" id="setCompanyPhone1" placeholder="0751 121 1511"></div>
+                            <div class="form-group"><label data-i18n="settings.phone2">Phone 2</label><input type="tel" id="setCompanyPhone2" placeholder="0774 088 6657"></div>
+                            <div class="form-group"><label data-i18n="admin.settings.email">Email</label><input type="email" id="setCompanyEmail" placeholder="info@megacars.com"></div>
+                            <div class="form-group"><label data-i18n="settings.taxId">Tax / Business ID</label><input type="text" id="setCompanyTaxId"></div>
                         </div>
-                        <div class="form-group">
-                            <label data-i18n="admin.settings.location">الموقع</label>
-                            <input type="text" value="Dohok, Iraq">
+                    </div>
+                </div>
+
+                <!-- Appearance Tab -->
+                <div class="settings-tab-content hidden" id="settingsAppearance">
+                    <div class="settings-card">
+                        <h4 class="settings-card-title"><i class="fas fa-paint-brush"></i> <span data-i18n="settings.colors.title">Colors</span></h4>
+                        <div class="color-grid">
+                            <div class="color-input-wrap">
+                                <label data-i18n="settings.color.primary">Primary Color</label>
+                                <input type="color" id="setPrimaryColor" value="#3b82f6" oninput="applyCustomization()">
+                            </div>
+                            <div class="color-input-wrap">
+                                <label data-i18n="settings.color.sidebar">Sidebar Background</label>
+                                <input type="color" id="setSidebarColor" value="#1e293b" oninput="applyCustomization()">
+                            </div>
+                            <div class="color-input-wrap">
+                                <label data-i18n="settings.color.success">Success Color</label>
+                                <input type="color" id="setSuccessColor" value="#10b981" oninput="applyCustomization()">
+                            </div>
+                            <div class="color-input-wrap">
+                                <label data-i18n="settings.color.danger">Danger Color</label>
+                                <input type="color" id="setDangerColor" value="#ef4444" oninput="applyCustomization()">
+                            </div>
+                            <div class="color-input-wrap">
+                                <label data-i18n="settings.color.warning">Warning Color</label>
+                                <input type="color" id="setWarningColor" value="#f59e0b" oninput="applyCustomization()">
+                            </div>
+                            <div class="color-input-wrap">
+                                <label data-i18n="settings.color.pageBg">Page Background</label>
+                                <input type="color" id="setPageBg" value="#f1f5f9" oninput="applyCustomization()">
+                            </div>
                         </div>
-                        <div class="form-group">
-                            <label data-i18n="admin.settings.phone">الهاتف</label>
-                            <input type="tel" placeholder="+964 (0) XXX XXXX XXX">
-                        </div>
-                        <div class="form-group">
-                            <label data-i18n="admin.settings.email">البريد الإلكتروني</label>
-                            <input type="email" placeholder="info@megacars.com">
-                        </div>
-                        <div class="form-group" style="grid-column:1/-1">
-                            <button type="submit" class="btn btn-primary">
-                                <i class="fas fa-save"></i> <span data-i18n="admin.settings.save">حفظ الإعدادات</span>
+
+                        <h4 class="settings-card-title" style="margin-top:24px"><i class="fas fa-magic"></i> <span data-i18n="settings.theme.presets">Theme Presets</span></h4>
+                        <div class="theme-presets">
+                            <button class="theme-preset" data-theme="default" onclick="applyThemePreset('default')" style="background:linear-gradient(135deg,#3b82f6,#1e293b)">
+                                <span data-i18n="settings.theme.default">Default Blue</span>
+                            </button>
+                            <button class="theme-preset" data-theme="emerald" onclick="applyThemePreset('emerald')" style="background:linear-gradient(135deg,#10b981,#064e3b)">
+                                <span data-i18n="settings.theme.emerald">Emerald</span>
+                            </button>
+                            <button class="theme-preset" data-theme="crimson" onclick="applyThemePreset('crimson')" style="background:linear-gradient(135deg,#dc2626,#450a0a)">
+                                <span data-i18n="settings.theme.crimson">Crimson</span>
+                            </button>
+                            <button class="theme-preset" data-theme="gold" onclick="applyThemePreset('gold')" style="background:linear-gradient(135deg,#eab308,#422006)">
+                                <span data-i18n="settings.theme.gold">Gold</span>
+                            </button>
+                            <button class="theme-preset" data-theme="purple" onclick="applyThemePreset('purple')" style="background:linear-gradient(135deg,#8b5cf6,#2e1065)">
+                                <span data-i18n="settings.theme.purple">Royal Purple</span>
+                            </button>
+                            <button class="theme-preset" data-theme="dark" onclick="applyThemePreset('dark')" style="background:linear-gradient(135deg,#374151,#0f172a)">
+                                <span data-i18n="settings.theme.dark">Dark Mode</span>
                             </button>
                         </div>
-                    </form>
+                    </div>
+                </div>
+
+                <!-- Typography Tab -->
+                <div class="settings-tab-content hidden" id="settingsTypography">
+                    <div class="settings-card">
+                        <h4 class="settings-card-title"><i class="fas fa-font"></i> <span data-i18n="settings.typo.title">Typography</span></h4>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label data-i18n="settings.typo.fontFamily">Font Family</label>
+                                <select id="setFontFamily" onchange="applyCustomization()">
+                                    <option value="Arial, sans-serif">Arial</option>
+                                    <option value="'Segoe UI', sans-serif">Segoe UI</option>
+                                    <option value="'Roboto', sans-serif">Roboto</option>
+                                    <option value="'Open Sans', sans-serif">Open Sans</option>
+                                    <option value="'Tahoma', sans-serif">Tahoma</option>
+                                    <option value="'Cairo', sans-serif">Cairo (Arabic)</option>
+                                    <option value="system-ui, sans-serif">System Default</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label><span data-i18n="settings.typo.baseSize">Base Font Size</span>: <span id="fontSizeLabel">14</span>px</label>
+                                <input type="range" id="setFontSize" min="11" max="20" value="14" oninput="document.getElementById('fontSizeLabel').textContent=this.value; applyCustomization()">
+                            </div>
+                            <div class="form-group">
+                                <label><span data-i18n="settings.typo.headingSize">Heading Size</span>: <span id="headingSizeLabel">18</span>px</label>
+                                <input type="range" id="setHeadingSize" min="14" max="28" value="18" oninput="document.getElementById('headingSizeLabel').textContent=this.value; applyCustomization()">
+                            </div>
+                            <div class="form-group">
+                                <label data-i18n="settings.typo.fontWeight">Font Weight</label>
+                                <select id="setFontWeight" onchange="applyCustomization()">
+                                    <option value="400" data-i18n="settings.typo.normal">Normal</option>
+                                    <option value="500" data-i18n="settings.typo.medium">Medium</option>
+                                    <option value="600" data-i18n="settings.typo.semibold">Semi Bold</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="preview-box">
+                            <small data-i18n="settings.preview">Preview:</small>
+                            <h3 id="typoPreviewHeading">إدارة السيارات / Manage Cars</h3>
+                            <p id="typoPreviewText">This is how your text will appear across the dashboard. هكذا سيظهر النص في لوحة التحكم.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Layout Tab -->
+                <div class="settings-tab-content hidden" id="settingsLayout">
+                    <div class="settings-card">
+                        <h4 class="settings-card-title"><i class="fas fa-ruler-combined"></i> <span data-i18n="settings.layout.title">Layout & Spacing</span></h4>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label><span data-i18n="settings.layout.sidebarWidth">Sidebar Width</span>: <span id="sidebarWidthLabel">260</span>px</label>
+                                <input type="range" id="setSidebarWidth" min="200" max="320" value="260" oninput="document.getElementById('sidebarWidthLabel').textContent=this.value; applyCustomization()">
+                            </div>
+                            <div class="form-group">
+                                <label><span data-i18n="settings.layout.radius">Corner Roundness</span>: <span id="radiusLabel">12</span>px</label>
+                                <input type="range" id="setRadius" min="0" max="24" value="12" oninput="document.getElementById('radiusLabel').textContent=this.value; applyCustomization()">
+                            </div>
+                            <div class="form-group">
+                                <label><span data-i18n="settings.layout.shadow">Shadow Intensity</span></label>
+                                <select id="setShadow" onchange="applyCustomization()">
+                                    <option value="none" data-i18n="settings.layout.shadowNone">None</option>
+                                    <option value="light" data-i18n="settings.layout.shadowLight">Light</option>
+                                    <option value="medium" selected data-i18n="settings.layout.shadowMedium">Medium</option>
+                                    <option value="strong" data-i18n="settings.layout.shadowStrong">Strong</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label><span data-i18n="settings.layout.density">UI Density</span></label>
+                                <select id="setDensity" onchange="applyCustomization()">
+                                    <option value="comfortable" selected data-i18n="settings.layout.comfortable">Comfortable</option>
+                                    <option value="compact" data-i18n="settings.layout.compact">Compact</option>
+                                    <option value="spacious" data-i18n="settings.layout.spacious">Spacious</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Finance Tab -->
+                <div class="settings-tab-content hidden" id="settingsFinance">
+                    <div class="settings-card">
+                        <h4 class="settings-card-title"><i class="fas fa-money-bill-wave"></i> <span data-i18n="settings.finance.title">Finance Settings</span></h4>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label data-i18n="settings.finance.exchangeRate">Default Exchange Rate (IQD per $1)</label>
+                                <input type="number" id="setDefaultExchangeRate" value="1490">
+                            </div>
+                            <div class="form-group">
+                                <label data-i18n="settings.finance.currency">Default Currency</label>
+                                <select id="setDefaultCurrency">
+                                    <option value="USD">USD ($)</option>
+                                    <option value="IQD">IQD (د.ع)</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label data-i18n="settings.finance.contractFee">Default Contract Fee ($)</label>
+                                <input type="number" id="setContractFee" value="100">
+                            </div>
+                            <div class="form-group">
+                                <label data-i18n="settings.finance.publisherFee">Default Publisher Fee ($)</label>
+                                <input type="number" id="setPublisherFee" value="100">
+                            </div>
+                            <div class="form-group">
+                                <label data-i18n="settings.finance.dateFormat">Date Format</label>
+                                <select id="setDateFormat">
+                                    <option value="dd/mm/yyyy">DD/MM/YYYY</option>
+                                    <option value="mm/dd/yyyy">MM/DD/YYYY</option>
+                                    <option value="yyyy-mm-dd">YYYY-MM-DD</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </section>
         </main>

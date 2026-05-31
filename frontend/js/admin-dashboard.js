@@ -1043,3 +1043,120 @@ function printPaymentSchedule() {
     w.document.write(html);
     w.document.close();
 }
+
+// ── Customization / Settings ─────────────────────────────
+
+const THEME_PRESETS = {
+    default: { primary:'#3b82f6', sidebar:'#1e293b', success:'#10b981', danger:'#ef4444', warning:'#f59e0b', pageBg:'#f1f5f9' },
+    emerald: { primary:'#10b981', sidebar:'#064e3b', success:'#22c55e', danger:'#dc2626', warning:'#f59e0b', pageBg:'#ecfdf5' },
+    crimson: { primary:'#dc2626', sidebar:'#450a0a', success:'#16a34a', danger:'#991b1b', warning:'#ea580c', pageBg:'#fef2f2' },
+    gold:    { primary:'#eab308', sidebar:'#422006', success:'#16a34a', danger:'#dc2626', warning:'#f59e0b', pageBg:'#fefce8' },
+    purple:  { primary:'#8b5cf6', sidebar:'#2e1065', success:'#10b981', danger:'#ef4444', warning:'#f59e0b', pageBg:'#faf5ff' },
+    dark:    { primary:'#60a5fa', sidebar:'#0f172a', success:'#10b981', danger:'#ef4444', warning:'#f59e0b', pageBg:'#1e293b' },
+};
+
+function showSettingsTab(name, e) {
+    document.querySelectorAll('.settings-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.settings-tab-content').forEach(c => c.classList.add('hidden'));
+    e?.currentTarget?.classList.add('active');
+    const map = { company:'settingsCompany', appearance:'settingsAppearance', typography:'settingsTypography', layout:'settingsLayout', finance:'settingsFinance' };
+    document.getElementById(map[name])?.classList.remove('hidden');
+}
+
+function applyThemePreset(name) {
+    const t = THEME_PRESETS[name]; if (!t) return;
+    document.getElementById('setPrimaryColor').value = t.primary;
+    document.getElementById('setSidebarColor').value = t.sidebar;
+    document.getElementById('setSuccessColor').value = t.success;
+    document.getElementById('setDangerColor').value  = t.danger;
+    document.getElementById('setWarningColor').value = t.warning;
+    document.getElementById('setPageBg').value       = t.pageBg;
+    applyCustomization();
+}
+
+function applyCustomization() {
+    const root = document.documentElement.style;
+    const get = (id, fallback) => document.getElementById(id)?.value || fallback;
+
+    // Colors
+    root.setProperty('--primary',    get('setPrimaryColor', '#3b82f6'));
+    root.setProperty('--sidebar-bg', get('setSidebarColor', '#1e293b'));
+    root.setProperty('--success',    get('setSuccessColor', '#10b981'));
+    root.setProperty('--danger',     get('setDangerColor',  '#ef4444'));
+    root.setProperty('--warning',    get('setWarningColor', '#f59e0b'));
+    root.setProperty('--page-bg',    get('setPageBg',       '#f1f5f9'));
+
+    // Typography
+    const fontSize    = get('setFontSize',    '14');
+    const fontFamily  = get('setFontFamily',  'Arial, sans-serif');
+    const fontWeight  = get('setFontWeight',  '400');
+    const headingSize = get('setHeadingSize', '18');
+    document.body.style.fontSize   = fontSize + 'px';
+    document.body.style.fontFamily = fontFamily;
+    document.body.style.fontWeight = fontWeight;
+    root.setProperty('--heading-size', headingSize + 'px');
+    document.querySelectorAll('h1,h2,h3,h4,h5').forEach(h => h.style.fontSize = headingSize + 'px');
+
+    // Layout
+    root.setProperty('--sidebar-w', get('setSidebarWidth', '260') + 'px');
+    root.setProperty('--radius',    get('setRadius', '12') + 'px');
+    root.setProperty('--radius-sm', Math.max(0, parseInt(get('setRadius','12'))-4) + 'px');
+
+    // Shadow
+    const shadowMap = {
+        none:   ['none','none'],
+        light:  ['0 1px 2px rgba(0,0,0,.04)','0 2px 8px rgba(0,0,0,.04)'],
+        medium: ['0 1px 3px rgba(0,0,0,.08), 0 4px 16px rgba(0,0,0,.06)','0 4px 6px rgba(0,0,0,.07), 0 10px 30px rgba(0,0,0,.12)'],
+        strong: ['0 4px 10px rgba(0,0,0,.15)','0 12px 40px rgba(0,0,0,.25)']
+    };
+    const [sh, shLg] = shadowMap[get('setShadow','medium')] || shadowMap.medium;
+    root.setProperty('--shadow', sh);
+    root.setProperty('--shadow-lg', shLg);
+
+    // Density (paddings)
+    const densityMap = { compact: '8px 12px', comfortable: '12px 18px', spacious: '18px 24px' };
+    root.setProperty('--density-padding', densityMap[get('setDensity','comfortable')] || densityMap.comfortable);
+}
+
+function saveAllSettings() {
+    const ids = ['setPrimaryColor','setSidebarColor','setSuccessColor','setDangerColor','setWarningColor','setPageBg',
+                 'setFontSize','setFontFamily','setFontWeight','setHeadingSize',
+                 'setSidebarWidth','setRadius','setShadow','setDensity',
+                 'setCompanyName','setCompanyLocation','setCompanyPhone1','setCompanyPhone2','setCompanyEmail','setCompanyTaxId',
+                 'setDefaultExchangeRate','setDefaultCurrency','setContractFee','setPublisherFee','setDateFormat'];
+    const settings = {};
+    ids.forEach(id => { const el = document.getElementById(id); if (el) settings[id] = el.value; });
+    localStorage.setItem('megaCarsSettings', JSON.stringify(settings));
+    applyCustomization();
+    alert(t('alert.settingsSaved'));
+}
+
+function loadSavedSettings() {
+    const raw = localStorage.getItem('megaCarsSettings');
+    if (!raw) { applyCustomization(); return; }
+    try {
+        const settings = JSON.parse(raw);
+        Object.entries(settings).forEach(([id, val]) => {
+            const el = document.getElementById(id);
+            if (el) el.value = val;
+        });
+        // Update visible range labels
+        ['fontSize','headingSize','sidebarWidth','radius'].forEach(name => {
+            const id = 'set' + name.charAt(0).toUpperCase() + name.slice(1);
+            const labelId = name + 'Label';
+            const el = document.getElementById(id);
+            const label = document.getElementById(labelId);
+            if (el && label) label.textContent = el.value;
+        });
+        applyCustomization();
+    } catch (e) { console.error('Failed to load settings:', e); }
+}
+
+function resetCustomization() {
+    if (!confirm('Reset all customizations to default?')) return;
+    localStorage.removeItem('megaCarsSettings');
+    location.reload();
+}
+
+// Load saved settings on page load
+document.addEventListener('DOMContentLoaded', loadSavedSettings);
