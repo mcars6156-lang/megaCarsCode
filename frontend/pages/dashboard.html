@@ -134,18 +134,18 @@
                 <div class="filters">
                     <input type="text" id="searchBrand" data-i18n-placeholder="inv.searchPlaceholder" placeholder="Search brand or model...">
                     <select id="filterStatus">
-                        <option value="" data-i18n="inv.allStatus">All Status</option>
+                        <option value="" data-i18n="dyn.status.all">All Status</option>
                         <option value="available" data-i18n="dyn.available">Available</option>
-                        <option value="sold" data-i18n="inv.sold">Sold</option>
+                        <option value="sold" data-i18n="dyn.status.sold">Sold</option>
                         <option value="pending" data-i18n="dyn.status.pending">Pending</option>
-                        <option value="in-service" data-i18n="inv.inService">In Service</option>
+                        <option value="in-service" data-i18n="dyn.status.inservice">In Service</option>
                     </select>
                     <select id="filterFuel">
-                        <option value="" data-i18n="inv.allFuel">All Fuel</option>
-                        <option value="petrol">Petrol</option>
-                        <option value="diesel">Diesel</option>
-                        <option value="hybrid">Hybrid</option>
-                        <option value="electric">Electric</option>
+                        <option value="" data-i18n="dyn.fuel.all">All Fuel</option>
+                        <option value="petrol" data-i18n="dyn.fuel.petrol">Petrol</option>
+                        <option value="diesel" data-i18n="dyn.fuel.diesel">Diesel</option>
+                        <option value="hybrid" data-i18n="dyn.fuel.hybrid">Hybrid</option>
+                        <option value="electric" data-i18n="dyn.fuel.electric">Electric</option>
                     </select>
                     <input type="number" id="filterMinPrice" data-i18n-placeholder="cars.minPrice" placeholder="Min $">
                     <input type="number" id="filterMaxPrice" data-i18n-placeholder="cars.maxPrice" placeholder="Max $">
@@ -226,36 +226,36 @@
                     <div class="form-group">
                         <label data-i18n="inv.fuel">Fuel</label>
                         <select name="fuel">
-                            <option value="petrol">Petrol</option>
-                            <option value="diesel">Diesel</option>
-                            <option value="hybrid">Hybrid</option>
-                            <option value="electric">Electric</option>
+                            <option value="petrol" data-i18n="dyn.fuel.petrol">Petrol</option>
+                            <option value="diesel" data-i18n="dyn.fuel.diesel">Diesel</option>
+                            <option value="hybrid" data-i18n="dyn.fuel.hybrid">Hybrid</option>
+                            <option value="electric" data-i18n="dyn.fuel.electric">Electric</option>
                         </select>
                     </div>
                     <div class="form-group">
                         <label data-i18n="inv.transmission">Transmission</label>
                         <select name="transmission">
-                            <option value="automatic">Automatic</option>
-                            <option value="manual">Manual</option>
+                            <option value="automatic" data-i18n="dyn.trans.automatic">Automatic</option>
+                            <option value="manual" data-i18n="dyn.trans.manual">Manual</option>
                         </select>
                     </div>
                     <div class="form-group">
                         <label data-i18n="inv.bodyType">Body Type</label>
                         <select name="bodyType">
-                            <option value="sedan">Sedan</option>
-                            <option value="suv">SUV</option>
-                            <option value="hatchback">Hatchback</option>
-                            <option value="coupe">Coupe</option>
-                            <option value="pickup">Pickup</option>
-                            <option value="van">Van</option>
+                            <option value="sedan" data-i18n="dyn.body.sedan">Sedan</option>
+                            <option value="suv" data-i18n="dyn.body.suv">SUV</option>
+                            <option value="hatchback" data-i18n="dyn.body.hatchback">Hatchback</option>
+                            <option value="coupe" data-i18n="dyn.body.coupe">Coupe</option>
+                            <option value="pickup" data-i18n="dyn.body.pickup">Pickup</option>
+                            <option value="van" data-i18n="dyn.body.van">Van</option>
                         </select>
                     </div>
                     <div class="form-group">
                         <label data-i18n="inv.condition">Condition</label>
                         <select name="condition">
-                            <option value="used">Used</option>
-                            <option value="new">New</option>
-                            <option value="certified">Certified</option>
+                            <option value="used" data-i18n="dyn.cond.used">Used</option>
+                            <option value="new" data-i18n="dyn.cond.new">New</option>
+                            <option value="certified" data-i18n="dyn.cond.certified">Certified</option>
                         </select>
                     </div>
                     <div class="form-group">
@@ -443,45 +443,45 @@
                     <div class="form-group">
                         <label data-i18n="inv.fuel">Fuel</label>
                         <select id="editFuel">
-                            <option value="petrol">Petrol</option>
-                            <option value="diesel">Diesel</option>
-                            <option value="hybrid">Hybrid</option>
-                            <option value="electric">Electric</option>
+                            <option value="petrol" data-i18n="dyn.fuel.petrol">Petrol</option>
+                            <option value="diesel" data-i18n="dyn.fuel.diesel">Diesel</option>
+                            <option value="hybrid" data-i18n="dyn.fuel.hybrid">Hybrid</option>
+                            <option value="electric" data-i18n="dyn.fuel.electric">Electric</option>
                         </select>
                     </div>
                     <div class="form-group">
                         <label data-i18n="inv.transmission">Transmission</label>
                         <select id="editTransmission">
-                            <option value="automatic">Automatic</option>
-                            <option value="manual">Manual</option>
+                            <option value="automatic" data-i18n="dyn.trans.automatic">Automatic</option>
+                            <option value="manual" data-i18n="dyn.trans.manual">Manual</option>
                         </select>
                     </div>
                     <div class="form-group">
                         <label data-i18n="inv.bodyType">Body Type</label>
                         <select id="editBodyType">
-                            <option value="sedan">Sedan</option>
-                            <option value="suv">SUV</option>
-                            <option value="hatchback">Hatchback</option>
-                            <option value="coupe">Coupe</option>
-                            <option value="pickup">Pickup</option>
-                            <option value="van">Van</option>
+                            <option value="sedan" data-i18n="dyn.body.sedan">Sedan</option>
+                            <option value="suv" data-i18n="dyn.body.suv">SUV</option>
+                            <option value="hatchback" data-i18n="dyn.body.hatchback">Hatchback</option>
+                            <option value="coupe" data-i18n="dyn.body.coupe">Coupe</option>
+                            <option value="pickup" data-i18n="dyn.body.pickup">Pickup</option>
+                            <option value="van" data-i18n="dyn.body.van">Van</option>
                         </select>
                     </div>
                     <div class="form-group">
                         <label data-i18n="inv.condition">Condition</label>
                         <select id="editCondition">
-                            <option value="used">Used</option>
-                            <option value="new">New</option>
-                            <option value="certified">Certified</option>
+                            <option value="used" data-i18n="dyn.cond.used">Used</option>
+                            <option value="new" data-i18n="dyn.cond.new">New</option>
+                            <option value="certified" data-i18n="dyn.cond.certified">Certified</option>
                         </select>
                     </div>
                     <div class="form-group">
                         <label data-i18n="dyn.status">Status</label>
                         <select id="editStatus">
-                            <option value="available">Available</option>
-                            <option value="sold">Sold</option>
-                            <option value="pending">Pending</option>
-                            <option value="in-service">In Service</option>
+                            <option value="available" data-i18n="dyn.available">Available</option>
+                            <option value="sold" data-i18n="dyn.status.sold">Sold</option>
+                            <option value="pending" data-i18n="dyn.status.pending">Pending</option>
+                            <option value="in-service" data-i18n="dyn.status.inservice">In Service</option>
                         </select>
                     </div>
                     <div class="form-group">
