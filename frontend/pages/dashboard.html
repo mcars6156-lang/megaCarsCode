@@ -348,6 +348,14 @@
             <section id="contracts" class="content-section hidden">
                 <h4 class="section-title"><i class="fas fa-file-contract"></i> <span data-i18n="contract.title">Sale Contract</span></h4>
                 <div class="contract-form-card">
+                    <!-- Car picker -->
+                    <div class="car-picker-bar">
+                        <i class="fas fa-car"></i>
+                        <label data-i18n="contract.selectCar">Select Car from Inventory:</label>
+                        <select id="contractCarSelect" onchange="fillContractFromCar(this.value)">
+                            <option value="" data-i18n="contract.pickCar">-- Pick a car --</option>
+                        </select>
+                    </div>
                     <div class="form-grid">
                         <div class="form-group">
                             <label data-i18n="contract.number">Contract No.</label>

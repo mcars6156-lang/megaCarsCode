@@ -36,6 +36,7 @@ function showSection(sectionId, e) {
     if (sectionId === 'my-sales')     loadSales();
     if (sectionId === 'installments') loadInstallments();
     if (sectionId === 'settings')     loadSettings();
+    if (sectionId === 'contracts')    loadContractCars();
 }
 
 // ── Welcome banner ────────────────────────────────────────
@@ -709,3 +710,31 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (err) { console.error('Error adding car:', err); alert(t('alert.carAddFailed')); }
     });
 });
+
+// ── Contract car picker ───────────────────────────────────
+
+async function loadContractCars() {
+    try {
+        const res  = await fetch(`${API_BASE_URL}/cars`);
+        const cars = await res.json();
+        const sel  = document.getElementById('contractCarSelect');
+        if (!sel || !Array.isArray(cars)) return;
+        sel.innerHTML = `<option value="">${t('contract.pickCar')}</option>` +
+            cars.map(c => `<option value="${c._id}">${c.brand} ${c.model} ${c.year}  –  $${c.price.toLocaleString()}  [${c.status}]</option>`).join('');
+    } catch (e) { console.error(e); }
+}
+
+async function fillContractFromCar(carId) {
+    if (!carId) return;
+    try {
+        const res = await fetch(`${API_BASE_URL}/cars/${carId}`);
+        const car = await res.json();
+        const set = (id, val) => { const el = document.getElementById(id); if (el) el.value = val || ''; };
+        set('contractBrand',  car.brand);
+        set('contractYear',   `${car.year} ${car.model}`);
+        set('contractColor',  car.color);
+        set('contractVin',    car.vin);
+        set('contractTotal',  car.price);
+        updateContractRemaining();
+    } catch (e) { console.error(e); }
+}

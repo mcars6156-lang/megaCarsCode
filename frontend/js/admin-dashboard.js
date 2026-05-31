@@ -585,26 +585,27 @@ function calculateInstallments() {
     const remaining = total - down;
     const options   = [250, 300, 350, 400, 450, 500];
     el.innerHTML = `
-        <table>
+        <div style="overflow-x:auto;margin-top:16px">
+        <table style="width:100%;border-collapse:collapse">
             <thead><tr>
-                <th>${t('calc.months')}</th>
-                <th>${t('calc.monthly')}</th>
-                <th>${t('calc.remaining')}</th>
-                <th>${t('calc.downPayment')}</th>
-                <th>${t('calc.total')}</th>
+                <th style="padding:10px 14px;background:var(--page-bg);border-bottom:2px solid var(--border);text-align:center">${t('calc.months')}</th>
+                <th style="padding:10px 14px;background:var(--page-bg);border-bottom:2px solid var(--border);text-align:center">${t('calc.monthly')}</th>
+                <th style="padding:10px 14px;background:var(--page-bg);border-bottom:2px solid var(--border);text-align:center">${t('calc.remaining')}</th>
+                <th style="padding:10px 14px;background:var(--page-bg);border-bottom:2px solid var(--border);text-align:center">${t('calc.downPayment')}</th>
+                <th style="padding:10px 14px;background:var(--page-bg);border-bottom:2px solid var(--border);text-align:center">${t('calc.total')}</th>
             </tr></thead>
-            <tbody>${options.map(m => {
+            <tbody>${options.map((m, i) => {
                 const months = Math.ceil(remaining / m);
                 const tot    = down + (m * months);
-                return `<tr>
-                    <td><strong>${months}</strong></td>
-                    <td>$${m.toLocaleString()}</td>
-                    <td>$${remaining.toLocaleString()}</td>
-                    <td>$${down.toLocaleString()}</td>
-                    <td><strong>$${tot.toLocaleString()}</strong></td>
+                return `<tr style="background:${i%2===0?'var(--card-bg)':'var(--bg-secondary)'}">
+                    <td style="padding:10px 14px;border-bottom:1px solid var(--border);text-align:center"><strong>${months}</strong></td>
+                    <td style="padding:10px 14px;border-bottom:1px solid var(--border);text-align:center">$${m.toLocaleString()}</td>
+                    <td style="padding:10px 14px;border-bottom:1px solid var(--border);text-align:center">$${remaining.toLocaleString()}</td>
+                    <td style="padding:10px 14px;border-bottom:1px solid var(--border);text-align:center">$${down.toLocaleString()}</td>
+                    <td style="padding:10px 14px;border-bottom:1px solid var(--border);text-align:center"><strong style="color:var(--success)">$${tot.toLocaleString()}</strong></td>
                 </tr>`;
             }).join('')}</tbody>
-        </table>`;
+        </table></div>`;
 }
 
 // ── Sale Contract ─────────────────────────────────────────
@@ -620,6 +621,7 @@ function initContractDefaults() {
         const sn = document.getElementById('sellerName'); if (sn && !sn.value) sn.value = currentAdmin.name || '';
         const sp = document.getElementById('sellerPhone'); if (sp && !sp.value) sp.value = currentAdmin.phone || '';
     }
+    loadContractCars();
 }
 
 function updateContractRemaining() {
@@ -753,4 +755,35 @@ function exportExpensesCSV() {
         e.paymentMethod || ''
     ]);
     exportToCSV([headers, ...rows], `expenses-${new Date().toISOString().split('T')[0]}.csv`);
+}
+
+// ── Contract car picker ───────────────────────────────────
+
+async function loadContractCars() {
+    try {
+        const token = localStorage.getItem('token');
+        const res  = await fetch(`${API_BASE_URL}/cars`, { headers: { 'Authorization': `Bearer ${token}` } });
+        const cars = await res.json();
+        const sel  = document.getElementById('contractCarSelect');
+        if (!sel || !Array.isArray(cars)) return;
+        sel.innerHTML = `<option value="">${t('contract.pickCar')}</option>` +
+            cars.map(c => `<option value="${c._id}">${c.brand} ${c.model} ${c.year}  –  $${c.price.toLocaleString()}  [${c.status}]</option>`).join('');
+    } catch (e) { console.error(e); }
+}
+
+async function fillContractFromCar(carId) {
+    if (!carId) return;
+    try {
+        const token = localStorage.getItem('token');
+        const res  = await fetch(`${API_BASE_URL}/cars/${carId}`, { headers: { 'Authorization': `Bearer ${token}` } });
+        const car  = await res.json();
+
+        const set = (id, val) => { const el = document.getElementById(id); if (el) el.value = val || ''; };
+        set('contractBrand',   car.brand);
+        set('contractYear',    `${car.year} ${car.model}`);
+        set('contractColor',   car.color);
+        set('contractVin',     car.vin);
+        set('contractTotal',   car.price);
+        updateContractRemaining();
+    } catch (e) { console.error(e); }
 }

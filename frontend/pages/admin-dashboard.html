@@ -266,6 +266,14 @@
                     <h3 class="section-title"><i class="fas fa-file-contract"></i> <span data-i18n="contract.title">Sale Contract</span></h3>
                 </div>
                 <div class="settings-card">
+                    <!-- Car picker -->
+                    <div class="car-picker-bar">
+                        <i class="fas fa-car"></i>
+                        <label data-i18n="contract.selectCar">Select Car from Inventory:</label>
+                        <select id="contractCarSelect" onchange="fillContractFromCar(this.value)" style="flex:1;padding:8px 10px;border:1px solid var(--border);border-radius:6px;font-size:14px">
+                            <option value="" data-i18n="contract.pickCar">-- Pick a car --</option>
+                        </select>
+                    </div>
                     <div class="form-row">
                         <div class="form-group"><label data-i18n="contract.number">Contract No.</label><input type="text" id="contractNo" placeholder="1001"></div>
                         <div class="form-group"><label data-i18n="contract.date">Date</label><input type="date" id="contractDate"></div>
