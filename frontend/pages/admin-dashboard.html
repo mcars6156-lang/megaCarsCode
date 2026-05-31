@@ -248,15 +248,19 @@
                 <div class="settings-card">
                     <div class="form-row">
                         <div class="form-group">
-                            <label data-i18n="calc.totalPrice">Total Installment Price ($)</label>
-                            <input type="number" id="calcTotalPrice" placeholder="18600" oninput="calculateInstallments()">
+                            <label data-i18n="calc.costPrice">Purchase Price / سعر الشراء ($)</label>
+                            <input type="number" id="calcCostPrice" placeholder="1000" oninput="calculateInstallments()">
                         </div>
                         <div class="form-group">
-                            <label data-i18n="calc.downPayment">Down Payment ($)</label>
-                            <input type="number" id="calcDownPayment" placeholder="6000" oninput="calculateInstallments()">
+                            <label data-i18n="calc.downPayment">Down Payment / مقدمة ($)</label>
+                            <input type="number" id="calcDownPayment" placeholder="100" oninput="calculateInstallments()">
+                        </div>
+                        <div class="form-group">
+                            <label data-i18n="calc.monthly">Monthly / كل شهر ($)</label>
+                            <input type="number" id="calcMonthly" placeholder="100" oninput="calculateInstallments()">
                         </div>
                     </div>
-                    <div id="calcResult"><p style="color:var(--text-muted);padding:16px 0" data-i18n="calc.hint">Enter values above to see payment options</p></div>
+                    <div id="calcResult"><p style="color:var(--text-muted);padding:16px 0" data-i18n="calc.hint">Enter values above to see installment options</p></div>
                 </div>
             </section>
 
@@ -293,16 +297,26 @@
                             <div class="form-group"><label data-i18n="contract.idNo">ID Number</label><input type="text" id="buyerId"></div>
                             <div class="form-group"><label data-i18n="contract.occupation">Occupation</label><input type="text" id="buyerOcc"></div>
                             <div class="form-group"><label data-i18n="contract.phone">Phone</label><input type="text" id="buyerPhone"></div>
+                            <div class="form-group"><label data-i18n="contract.phone2">Phone 2</label><input type="text" id="buyerPhone2"></div>
                             <div class="form-group"><label data-i18n="contract.city">City</label><input type="text" id="buyerCity" value="دهوك"></div>
                         </div>
                     </div>
                     <h5 style="margin:16px 0 8px;border-bottom:1px solid var(--border);padding-bottom:6px" data-i18n="contract.carInfo">Car Details</h5>
                     <div class="form-row">
                         <div class="form-group"><label data-i18n="contract.brand">Brand / Type</label><input type="text" id="contractBrand"></div>
+                        <div class="form-group"><label data-i18n="contract.plate">Plate No.</label><input type="text" id="contractPlate"></div>
                         <div class="form-group"><label data-i18n="contract.yearModel">Year / Model</label><input type="text" id="contractYear"></div>
                         <div class="form-group"><label data-i18n="contract.color">Color</label><input type="text" id="contractColor"></div>
                         <div class="form-group"><label data-i18n="contract.engineNo">Engine No.</label><input type="text" id="contractEngineNo"></div>
                         <div class="form-group"><label data-i18n="contract.chassisNo">Chassis / VIN</label><input type="text" id="contractVin"></div>
+                    </div>
+                    <h5 style="margin:16px 0 8px;border-bottom:1px solid var(--border);padding-bottom:6px" data-i18n="contract.witness">Witness &amp; Guarantor</h5>
+                    <div class="form-row">
+                        <div class="form-group"><label data-i18n="contract.witnessName">Witness Name</label><input type="text" id="witnessName"></div>
+                        <div class="form-group"><label data-i18n="contract.witnessPhone">Witness Phone</label><input type="text" id="witnessPhone"></div>
+                        <div class="form-group"><label data-i18n="contract.guarantorName">Guarantor</label><input type="text" id="guarantorName"></div>
+                        <div class="form-group"><label data-i18n="contract.guarantorPhone">Guarantor Phone</label><input type="text" id="guarantorPhone"></div>
+                        <div class="form-group"><label data-i18n="contract.insuranceOwner">Insurance Owner</label><input type="text" id="insuranceOwner"></div>
                     </div>
                     <h5 style="margin:16px 0 8px;border-bottom:1px solid var(--border);padding-bottom:6px" data-i18n="contract.payment">Payment Details</h5>
                     <div class="form-row">

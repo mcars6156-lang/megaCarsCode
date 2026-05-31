@@ -574,35 +574,58 @@ document.addEventListener('DOMContentLoaded', () => {
 // ── Installment Calculator ────────────────────────────────
 
 function calculateInstallments() {
-    const total = parseFloat(document.getElementById('calcTotalPrice')?.value) || 0;
-    const down  = parseFloat(document.getElementById('calcDownPayment')?.value) || 0;
-    const el    = document.getElementById('calcResult');
+    const cost    = parseFloat(document.getElementById('calcCostPrice')?.value)  || 0;
+    const down    = parseFloat(document.getElementById('calcDownPayment')?.value) || 0;
+    const monthly = parseFloat(document.getElementById('calcMonthly')?.value)     || 0;
+    const el      = document.getElementById('calcResult');
     if (!el) return;
-    if (!total || !down || down >= total) {
+    if (!cost || !down || !monthly || down >= cost) {
         el.innerHTML = `<p style="color:var(--text-muted);padding:16px 0">${t('calc.hint')}</p>`;
         return;
     }
-    const remaining = total - down;
-    const options   = [250, 300, 350, 400, 450, 500];
+
+    // Excel formula:
+    // الباقي من فلوسي = سعر الشراء - مقدمة
+    // الباقي = كل شهر × كم شهر
+    // سعر البيع = مقدمة + الباقي
+    // الأرباح = سعر البيع - سعر الشراء
+    // نسبة الأرباح % = الأرباح / الباقي من فلوسي × 100
+    const dealerRemaining = cost - down;
+    const monthOptions = [6, 9, 12, 15, 18, 21, 24, 27, 30, 33, 36];
+    const th = (txt, yellow) => `<th style="padding:9px 12px;background:${yellow?'#fbbf24':'var(--page-bg)'};border-bottom:2px solid var(--border);text-align:center;font-size:12px">${txt}</th>`;
+    const td = (txt, bold, color) => `<td style="padding:8px 12px;border-bottom:1px solid var(--border);text-align:center;${bold?'font-weight:bold':''}${color?';color:'+color:''}">${txt}</td>`;
+
     el.innerHTML = `
-        <div style="overflow-x:auto;margin-top:16px">
+        <div style="margin-top:12px;padding:10px;background:var(--bg-secondary);border-radius:8px;font-size:13px;display:flex;gap:24px;flex-wrap:wrap">
+            <span><strong data-i18n="calc.costPrice">سعر الشراء:</strong> $${cost.toLocaleString()}</span>
+            <span><strong data-i18n="calc.downPayment">المقدمة:</strong> $${down.toLocaleString()}</span>
+            <span><strong>الباقي من فلوسي:</strong> $${dealerRemaining.toLocaleString()}</span>
+            <span><strong data-i18n="calc.monthly">كل شهر:</strong> $${monthly.toLocaleString()}</span>
+        </div>
+        <div style="overflow-x:auto;margin-top:12px">
         <table style="width:100%;border-collapse:collapse">
             <thead><tr>
-                <th style="padding:10px 14px;background:var(--page-bg);border-bottom:2px solid var(--border);text-align:center">${t('calc.months')}</th>
-                <th style="padding:10px 14px;background:var(--page-bg);border-bottom:2px solid var(--border);text-align:center">${t('calc.monthly')}</th>
-                <th style="padding:10px 14px;background:var(--page-bg);border-bottom:2px solid var(--border);text-align:center">${t('calc.remaining')}</th>
-                <th style="padding:10px 14px;background:var(--page-bg);border-bottom:2px solid var(--border);text-align:center">${t('calc.downPayment')}</th>
-                <th style="padding:10px 14px;background:var(--page-bg);border-bottom:2px solid var(--border);text-align:center">${t('calc.total')}</th>
+                ${th('كم شهر',false)}
+                ${th('الباقي من فلوسي',false)}
+                ${th('الباقي',false)}
+                ${th('سعر البيع',false)}
+                ${th('الأرباح',false)}
+                ${th('نسبة الأرباح %',true)}
             </tr></thead>
-            <tbody>${options.map((m, i) => {
-                const months = Math.ceil(remaining / m);
-                const tot    = down + (m * months);
-                return `<tr style="background:${i%2===0?'var(--card-bg)':'var(--bg-secondary)'}">
-                    <td style="padding:10px 14px;border-bottom:1px solid var(--border);text-align:center"><strong>${months}</strong></td>
-                    <td style="padding:10px 14px;border-bottom:1px solid var(--border);text-align:center">$${m.toLocaleString()}</td>
-                    <td style="padding:10px 14px;border-bottom:1px solid var(--border);text-align:center">$${remaining.toLocaleString()}</td>
-                    <td style="padding:10px 14px;border-bottom:1px solid var(--border);text-align:center">$${down.toLocaleString()}</td>
-                    <td style="padding:10px 14px;border-bottom:1px solid var(--border);text-align:center"><strong style="color:var(--success)">$${tot.toLocaleString()}</strong></td>
+            <tbody>${monthOptions.map((months, i) => {
+                const installTotal = monthly * months;           // الباقي
+                const salePrice    = down + installTotal;        // سعر البيع
+                const profit       = salePrice - cost;           // الأرباح
+                const profitPct    = ((profit / dealerRemaining) * 100).toFixed(2); // نسبة الأرباح %
+                const isGood       = parseFloat(profitPct) >= 40;
+                const bg           = i%2===0 ? 'var(--card-bg)' : 'var(--bg-secondary)';
+                return `<tr style="background:${bg}">
+                    ${td(months, true)}
+                    ${td('$'+dealerRemaining.toLocaleString(), false)}
+                    ${td('$'+installTotal.toLocaleString(), false)}
+                    ${td('$'+salePrice.toLocaleString(), true)}
+                    ${td('$'+profit.toLocaleString(), true, profit>0?'var(--success)':'var(--danger)')}
+                    ${td(profitPct+'%', true, isGood?'var(--success)':'var(--warning)')}
                 </tr>`;
             }).join('')}</tbody>
         </table></div>`;
@@ -645,17 +668,21 @@ function printContract() {
     const fd = d  => d ? new Date(d).toLocaleDateString('ar-IQ') : '............';
     const html = `<!DOCTYPE html>
 <html dir="rtl" lang="ar"><head><meta charset="UTF-8"><title>عقد رقم ${g('contractNo')}</title>
-<style>*{box-sizing:border-box}body{font-family:Arial,sans-serif;margin:0;padding:15px;direction:rtl;font-size:13px}.page{max-width:780px;margin:0 auto;border:2px solid #333;padding:20px}.hdr{display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid #333;padding-bottom:12px;margin-bottom:12px}.hdr-side{font-size:12px;line-height:1.8}.hdr-center{text-align:center}.hdr-center img{width:65px;height:65px;object-fit:contain;border-radius:50%}.meta{display:flex;justify-content:space-between;margin-bottom:10px}.ct{text-align:center;font-size:20px;font-weight:bold;border:2px solid #333;padding:8px;margin:12px 0}.stitle{background:#eee;border:1px solid #999;padding:6px 10px;font-weight:bold;margin:10px 0 0}table{width:100%;border-collapse:collapse}td{border:1px solid #bbb;padding:5px 8px}.lbl{background:#f8f8f8;font-weight:bold;width:35%}.terms{border:1px solid #bbb;padding:10px;font-size:12px}.terms ol{margin:0;padding-right:18px}.terms li{margin-bottom:3px}.sigs{display:flex;justify-content:space-between;margin-top:35px}.sig{text-align:center;width:40%}.sig-line{border-top:1px solid #333;padding-top:5px;margin-top:50px}.pbtn{text-align:center;margin-bottom:15px}.pbtn button{padding:10px 30px;background:#2563eb;color:white;border:none;border-radius:6px;cursor:pointer;font-size:15px}@media print{.pbtn{display:none}}</style>
+<style>*{box-sizing:border-box}body{font-family:Arial,sans-serif;margin:0;padding:15px;direction:rtl;font-size:12px}.page{max-width:800px;margin:0 auto;border:2px solid #333;padding:18px}.hdr{display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid #333;padding-bottom:10px;margin-bottom:10px}.hdr-side{font-size:11px;line-height:1.8}.hdr-center{text-align:center}.hdr-center img{width:60px;height:60px;object-fit:contain;border-radius:50%}.meta{display:flex;justify-content:space-between;margin-bottom:8px;font-size:13px}.ct{text-align:center;font-size:18px;font-weight:bold;border:2px solid #333;padding:7px;margin:10px 0}.stitle{background:#eee;border:1px solid #999;padding:5px 10px;font-weight:bold;margin:8px 0 0}table{width:100%;border-collapse:collapse}td{border:1px solid #bbb;padding:4px 7px}.lbl{background:#f8f8f8;font-weight:bold;width:38%}.terms{border:1px solid #bbb;padding:8px;font-size:11px}.terms ol{margin:0;padding-right:16px}.terms li{margin-bottom:2px}.sigs{display:flex;justify-content:space-between;margin-top:25px}.sig{text-align:center;width:30%}.sig-line{border-top:1px solid #333;padding-top:4px;margin-top:40px;font-size:11px}.pbtn{text-align:center;margin-bottom:12px}.pbtn button{padding:10px 30px;background:#2563eb;color:white;border:none;border-radius:6px;cursor:pointer;font-size:14px}@media print{.pbtn{display:none}}</style>
 </head><body>
 <div class="pbtn"><button onclick="window.print()">🖨️ طباعة / Print</button></div>
 <div class="page">
   <div class="hdr">
-    <div class="hdr-side"><strong>Mega Cars Show</strong><br>For All Types of Cars Trading<br>Tel: 0751 121 1511<br>0774 088 6657</div>
-    <div class="hdr-center"><img src="/images/logo-small.png" alt="Mega Cars"><br><strong style="font-size:14px">Mega Cars</strong><br><span style="font-size:11px">لبيع وشراء السيارات</span></div>
+    <div class="hdr-side"><strong>Mega Cars Show</strong><br>For All Types of Cars Trading<br>Tel: 0751 121 1511 / 0774 088 6657</div>
+    <div class="hdr-center"><img src="/images/logo-small.png" alt="Mega Cars"><br><strong>Mega Cars</strong><br><span style="font-size:10px">لبيع وشراء السيارات</span></div>
     <div class="hdr-side" style="text-align:right"><strong>معرض ميگا كارس</strong><br>دهوك - پيشانگه هين ترومبيلا<br>تيرمنال معرض رقم 27</div>
   </div>
-  <div class="meta"><span>تاريخ العقد: <strong>${fd(g('contractDate'))}</strong></span><span>رقم العقد: <strong>${g('contractNo')||'----'}</strong></span></div>
+  <div class="meta">
+    <span>تاريخ العقد: <strong>${fd(g('contractDate'))}</strong></span>
+    <span>رقم العقد: <strong>${g('contractNo')||'----'}</strong></span>
+  </div>
   <div class="ct">عقد بيع وشراء سيارة</div>
+
   <div class="stitle">بيانات المتعاقدين</div>
   <table><tr>
     <td style="width:50%;vertical-align:top;border:none;padding:0"><table>
@@ -671,17 +698,50 @@ function printContract() {
       <tr><td class="lbl">الاسم:</td><td>${g('buyerName')}</td></tr>
       <tr><td class="lbl">رقم الهوية:</td><td>${g('buyerId')}</td></tr>
       <tr><td class="lbl">المهنة:</td><td>${g('buyerOcc')}</td></tr>
-      <tr><td class="lbl">رقم الهاتف:</td><td>${g('buyerPhone')}</td></tr>
+      <tr><td class="lbl">موبايل 1:</td><td>${g('buyerPhone')}</td></tr>
+      ${g('buyerPhone2') ? `<tr><td class="lbl">موبايل 2:</td><td>${g('buyerPhone2')}</td></tr>` : ''}
       <tr><td class="lbl">السكن:</td><td>${g('buyerCity')}</td></tr>
     </table></td>
   </tr></table>
+
   <div class="stitle">بيانات السيارة والمبالغ</div>
   <table>
-    <tr><td><strong>النوع:</strong> ${g('contractBrand')}</td><td><strong>الموديل:</strong> ${g('contractYear')}</td><td><strong>اللون:</strong> ${g('contractColor')}</td></tr>
-    <tr><td><strong>رقم المحرك:</strong> ${g('contractEngineNo')}</td><td colspan="2"><strong>رقم الشاسي:</strong> ${g('contractVin')}</td></tr>
-    <tr><td><strong>السعر الكلي:</strong> $${Number(g('contractTotal')).toLocaleString()}</td><td><strong>المبلغ المسدد:</strong> $${Number(g('contractDown')).toLocaleString()}</td><td><strong>المبلغ المتبقي:</strong> $${Number(g('contractRemaining')).toLocaleString()}</td></tr>
-    <tr><td><strong>مبلغ القسط:</strong> $${Number(g('contractMonthly')).toLocaleString()}/شهر</td><td><strong>عدد الأشهر:</strong> ${g('contractMonths')} شهر</td><td><strong>أول قسط:</strong> ${fd(g('contractFirstDate'))}</td></tr>
+    <tr>
+      <td><strong>النوع:</strong> ${g('contractBrand')}</td>
+      <td><strong>الموديل:</strong> ${g('contractYear')}</td>
+      <td><strong>اللون:</strong> ${g('contractColor')}</td>
+    </tr>
+    <tr>
+      <td><strong>رقم المحرك:</strong> ${g('contractEngineNo')}</td>
+      <td><strong>رقم الشاسي:</strong> ${g('contractVin')}</td>
+      <td><strong>رقم السيارة:</strong> ${g('contractPlate')}</td>
+    </tr>
+    <tr>
+      <td><strong>السعر الكلي:</strong> $${Number(g('contractTotal')).toLocaleString()}</td>
+      <td><strong>المبلغ المسدد:</strong> $${Number(g('contractDown')).toLocaleString()}</td>
+      <td><strong>المبلغ المتبقي:</strong> $${Number(g('contractRemaining')).toLocaleString()}</td>
+    </tr>
+    <tr>
+      <td><strong>مبلغ القسط:</strong> $${Number(g('contractMonthly')).toLocaleString()}/شهر</td>
+      <td><strong>عدد الأشهر:</strong> ${g('contractMonths')} شهر</td>
+      <td><strong>أول قسط:</strong> ${fd(g('contractFirstDate'))}</td>
+    </tr>
   </table>
+
+  ${(g('witnessName') || g('guarantorName') || g('insuranceOwner')) ? `
+  <div class="stitle">الشاهد والكفيل</div>
+  <table>
+    <tr>
+      <td><strong>الشاهد:</strong> ${g('witnessName')}</td>
+      <td><strong>هاتف الشاهد:</strong> ${g('witnessPhone')}</td>
+    </tr>
+    <tr>
+      <td><strong>الكفيل:</strong> ${g('guarantorName')}</td>
+      <td><strong>هاتف الكفيل:</strong> ${g('guarantorPhone')}</td>
+    </tr>
+    ${g('insuranceOwner') ? `<tr><td colspan="2"><strong>اسم صاحب السنوية:</strong> ${g('insuranceOwner')}</td></tr>` : ''}
+  </table>` : ''}
+
   <div class="stitle">الشروط والملاحظات</div>
   <div class="terms"><ol>
     <li>يتم دفع مقدمة العقد بالدولار عند توقيع الاتفاق.</li>
@@ -696,15 +756,18 @@ function printContract() {
     <li>ويكون موعد دفع الأقساط من اليوم الأول إلى اليوم الخامس من كل شهر حصراً.</li>
     ${g('contractNotes') ? `<li>${g('contractNotes')}</li>` : ''}
   </ol></div>
+
   <div class="sigs">
     <div class="sig"><div class="sig-line">توقيع الطرف الأول (البائع)</div></div>
     <div class="sig"><div class="sig-line">توقيع الطرف الثاني (المشتري)</div></div>
+    <div class="sig"><div class="sig-line">توقيع الشاهد</div></div>
   </div>
 </div></body></html>`;
-    const w = window.open('', '_blank', 'width=900,height=750,scrollbars=yes');
+    const w = window.open('', '_blank', 'width=900,height=800,scrollbars=yes');
     w.document.write(html);
     w.document.close();
 }
+
 
 // ── CSV Export ────────────────────────────────────────────
 
@@ -783,6 +846,7 @@ async function fillContractFromCar(carId) {
         set('contractYear',    `${car.year} ${car.model}`);
         set('contractColor',   car.color);
         set('contractVin',     car.vin);
+        set('contractPlate',   car.plateNumber);
         set('contractTotal',   car.price);
         updateContractRemaining();
     } catch (e) { console.error(e); }

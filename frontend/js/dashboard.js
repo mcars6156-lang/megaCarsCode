@@ -734,6 +734,7 @@ async function fillContractFromCar(carId) {
         set('contractYear',   `${car.year} ${car.model}`);
         set('contractColor',  car.color);
         set('contractVin',    car.vin);
+        set('contractPlate',  car.plateNumber);
         set('contractTotal',  car.price);
         updateContractRemaining();
     } catch (e) { console.error(e); }
