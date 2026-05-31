@@ -261,6 +261,75 @@
         </main>
     </div>
 
+    <!-- ── Edit Car Modal ──────────────────────────────── -->
+    <div id="adminEditCarModal" class="modal-overlay hidden" onclick="if(event.target===this)closeAdminEditCar()">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 class="modal-title"><i class="fas fa-edit"></i> <span data-i18n="admin.cars.edit">Edit Car</span></h3>
+                <button class="modal-close" onclick="closeAdminEditCar()"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="adminEditCarId">
+                <div class="form-row">
+                    <div class="form-group"><label data-i18n="admin.cars.brand">Brand</label><input type="text" id="adminEditBrand"></div>
+                    <div class="form-group"><label data-i18n="admin.cars.model">Model</label><input type="text" id="adminEditModel"></div>
+                    <div class="form-group"><label data-i18n="admin.cars.year">Year</label><input type="number" id="adminEditYear"></div>
+                    <div class="form-group"><label data-i18n="admin.cars.costPrice">Cost Price ($)</label><input type="number" id="adminEditCostPrice"></div>
+                    <div class="form-group"><label data-i18n="admin.cars.price">Sale Price ($)</label><input type="number" id="adminEditPrice"></div>
+                    <div class="form-group"><label data-i18n="admin.cars.mileage">Mileage</label><input type="number" id="adminEditMileage"></div>
+                    <div class="form-group"><label data-i18n="admin.cars.color">Color</label><input type="text" id="adminEditColor"></div>
+                    <div class="form-group"><label data-i18n="admin.cars.fuel">Fuel</label>
+                        <select id="adminEditFuel"><option value="petrol">Petrol</option><option value="diesel">Diesel</option><option value="hybrid">Hybrid</option><option value="electric">Electric</option></select>
+                    </div>
+                    <div class="form-group"><label>Transmission</label>
+                        <select id="adminEditTransmission"><option value="automatic">Automatic</option><option value="manual">Manual</option></select>
+                    </div>
+                    <div class="form-group"><label>Body Type</label>
+                        <select id="adminEditBodyType"><option value="sedan">Sedan</option><option value="suv">SUV</option><option value="hatchback">Hatchback</option><option value="coupe">Coupe</option><option value="pickup">Pickup</option><option value="van">Van</option></select>
+                    </div>
+                    <div class="form-group"><label>Condition</label>
+                        <select id="adminEditCondition"><option value="used">Used</option><option value="new">New</option><option value="certified">Certified</option></select>
+                    </div>
+                    <div class="form-group"><label data-i18n="admin.cars.status">Status</label>
+                        <select id="adminEditStatus"><option value="available">Available</option><option value="sold">Sold</option><option value="pending">Pending</option><option value="in-service">In Service</option></select>
+                    </div>
+                    <div class="form-group"><label>VIN</label><input type="text" id="adminEditVin"></div>
+                </div>
+                <div class="form-group" style="margin-top:8px"><label>Description</label><textarea id="adminEditDescription" rows="2" style="width:100%;padding:8px;border:1px solid var(--border);border-radius:6px;resize:vertical"></textarea></div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" onclick="saveAdminEditCar()"><i class="fas fa-save"></i> <span data-i18n="inv.save">Save</span></button>
+                <button class="btn btn-secondary" onclick="closeAdminEditCar()"><i class="fas fa-times"></i> <span data-i18n="admin.cars.cancel">Cancel</span></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Edit User Modal ──────────────────────────────── -->
+    <div id="adminEditUserModal" class="modal-overlay hidden" onclick="if(event.target===this)closeAdminEditUser()">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 class="modal-title"><i class="fas fa-user-edit"></i> <span data-i18n="admin.users.edit">Edit User</span></h3>
+                <button class="modal-close" onclick="closeAdminEditUser()"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="adminEditUserId">
+                <div class="form-row">
+                    <div class="form-group"><label data-i18n="admin.users.name">Name</label><input type="text" id="adminEditUserName"></div>
+                    <div class="form-group"><label data-i18n="admin.users.email">Email</label><input type="email" id="adminEditUserEmail" disabled style="opacity:0.6"></div>
+                    <div class="form-group"><label data-i18n="admin.users.phone">Phone</label><input type="tel" id="adminEditUserPhone"></div>
+                    <div class="form-group"><label data-i18n="admin.users.city">City</label><input type="text" id="adminEditUserCity"></div>
+                    <div class="form-group"><label data-i18n="admin.users.role">Role</label>
+                        <select id="adminEditUserRole"><option value="user">User</option><option value="admin">Admin</option></select>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" onclick="saveAdminEditUser()"><i class="fas fa-save"></i> <span data-i18n="inv.save">Save</span></button>
+                <button class="btn btn-secondary" onclick="closeAdminEditUser()"><i class="fas fa-times"></i> <span data-i18n="admin.cars.cancel">Cancel</span></button>
+            </div>
+        </div>
+    </div>
+
     <script src="../js/auth.js"></script>
     <script src="../js/admin-dashboard.js"></script>
 </body>

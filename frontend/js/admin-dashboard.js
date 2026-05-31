@@ -246,13 +246,81 @@ async function loadAdminCars() {
                         <td>${car.fuel || '–'}</td>
                         <td>${statusBadge(car.status)}</td>
                         <td>
-                            <button class="btn btn-secondary btn-small">${t('admin.cars.edit')}</button>
+                            <button class="btn btn-secondary btn-small" onclick="openAdminEditCar('${car._id}')">${t('admin.cars.edit')}</button>
                             <button class="btn btn-danger btn-small" onclick="deleteCar('${car._id}')">${t('admin.cars.delete')}</button>
                         </td>
                     </tr>`).join('')}
                 </tbody>
             </table>`;
     } catch (error) { console.error('Error loading cars:', error); }
+}
+
+async function openAdminEditCar(carId) {
+    try {
+        const token = localStorage.getItem('token');
+        const res   = await fetch(`${API_BASE_URL}/cars/${carId}`, { headers: { 'Authorization': `Bearer ${token}` } });
+        const car   = await res.json();
+
+        document.getElementById('adminEditCarId').value          = car._id;
+        document.getElementById('adminEditBrand').value          = car.brand        || '';
+        document.getElementById('adminEditModel').value          = car.model        || '';
+        document.getElementById('adminEditYear').value           = car.year         || '';
+        document.getElementById('adminEditCostPrice').value      = car.costPrice    || '';
+        document.getElementById('adminEditPrice').value          = car.price        || '';
+        document.getElementById('adminEditMileage').value        = car.mileage      || '';
+        document.getElementById('adminEditColor').value          = car.color        || '';
+        document.getElementById('adminEditFuel').value           = car.fuel         || 'petrol';
+        document.getElementById('adminEditTransmission').value   = car.transmission || 'automatic';
+        document.getElementById('adminEditBodyType').value       = car.bodyType     || 'sedan';
+        document.getElementById('adminEditCondition').value      = car.condition    || 'used';
+        document.getElementById('adminEditStatus').value         = car.status       || 'available';
+        document.getElementById('adminEditVin').value            = car.vin          || '';
+        document.getElementById('adminEditDescription').value    = car.description  || '';
+
+        document.getElementById('adminEditCarModal').classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+    } catch (err) { console.error('Error fetching car:', err); }
+}
+
+function closeAdminEditCar() {
+    document.getElementById('adminEditCarModal').classList.add('hidden');
+    document.body.style.overflow = '';
+}
+
+async function saveAdminEditCar() {
+    const id = document.getElementById('adminEditCarId').value;
+    const data = {
+        brand:        document.getElementById('adminEditBrand').value,
+        model:        document.getElementById('adminEditModel').value,
+        year:         parseInt(document.getElementById('adminEditYear').value),
+        costPrice:    parseFloat(document.getElementById('adminEditCostPrice').value) || 0,
+        price:        parseFloat(document.getElementById('adminEditPrice').value),
+        mileage:      parseInt(document.getElementById('adminEditMileage').value),
+        color:        document.getElementById('adminEditColor').value,
+        fuel:         document.getElementById('adminEditFuel').value,
+        transmission: document.getElementById('adminEditTransmission').value,
+        bodyType:     document.getElementById('adminEditBodyType').value,
+        condition:    document.getElementById('adminEditCondition').value,
+        status:       document.getElementById('adminEditStatus').value,
+        vin:          document.getElementById('adminEditVin').value,
+        description:  document.getElementById('adminEditDescription').value,
+    };
+    try {
+        const token = localStorage.getItem('token');
+        const res   = await fetch(`${API_BASE_URL}/cars/${id}`, {
+            method:  'PUT',
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+            body:    JSON.stringify(data)
+        });
+        if (res.ok) {
+            alert(t('inv.carUpdated'));
+            closeAdminEditCar();
+            loadAdminCars();
+        } else {
+            const err = await res.json();
+            alert(err.message || t('inv.carUpdateFailed'));
+        }
+    } catch (err) { console.error(err); alert(t('inv.carUpdateFailed')); }
 }
 
 async function loadAdminUsers() {
@@ -284,13 +352,49 @@ async function loadAdminUsers() {
                         <td>${statusBadge(user.role)}</td>
                         <td>${user.city || '–'}</td>
                         <td>
-                            <button class="btn btn-secondary btn-small">${t('admin.users.edit')}</button>
+                            <button class="btn btn-secondary btn-small" onclick="openAdminEditUser('${user._id}','${user.name}','${user.email}','${user.phone||''}','${user.city||''}','${user.role}')">${t('admin.users.edit')}</button>
                             <button class="btn btn-danger btn-small" onclick="deleteUser('${user._id}')">${t('admin.users.delete')}</button>
                         </td>
                     </tr>`).join('')}
                 </tbody>
             </table>`;
     } catch (error) { console.error('Error loading users:', error); }
+}
+
+function openAdminEditUser(id, name, email, phone, city, role) {
+    document.getElementById('adminEditUserId').value    = id;
+    document.getElementById('adminEditUserName').value  = name;
+    document.getElementById('adminEditUserEmail').value = email;
+    document.getElementById('adminEditUserPhone').value = phone;
+    document.getElementById('adminEditUserCity').value  = city;
+    document.getElementById('adminEditUserRole').value  = role;
+    document.getElementById('adminEditUserModal').classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeAdminEditUser() {
+    document.getElementById('adminEditUserModal').classList.add('hidden');
+    document.body.style.overflow = '';
+}
+
+async function saveAdminEditUser() {
+    const id = document.getElementById('adminEditUserId').value;
+    const data = {
+        name:  document.getElementById('adminEditUserName').value,
+        phone: document.getElementById('adminEditUserPhone').value,
+        city:  document.getElementById('adminEditUserCity').value,
+        role:  document.getElementById('adminEditUserRole').value,
+    };
+    try {
+        const token = localStorage.getItem('token');
+        const res   = await fetch(`${API_BASE_URL}/users/${id}`, {
+            method:  'PUT',
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+            body:    JSON.stringify(data)
+        });
+        if (res.ok) { alert(t('alert.profileSaved')); closeAdminEditUser(); loadAdminUsers(); }
+        else { const e = await res.json(); alert(e.message || 'Failed to update user'); }
+    } catch (err) { console.error(err); }
 }
 
 async function loadAdminSalesReports() {

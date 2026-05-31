@@ -43,6 +43,23 @@ router.put('/profile/:id', auth, async (req, res) => {
   }
 });
 
+// Admin: update any user (name, phone, city, role)
+router.put('/:id', adminOnly, async (req, res) => {
+  try {
+    const { name, phone, city, role } = req.body;
+    const allowed = {};
+    if (name  !== undefined) allowed.name  = name;
+    if (phone !== undefined) allowed.phone = phone;
+    if (city  !== undefined) allowed.city  = city;
+    if (role  !== undefined) allowed.role  = role;
+    const user = await User.findByIdAndUpdate(req.params.id, allowed, { new: true, runValidators: true }).select('-password');
+    if (!user) return res.status(404).json({ message: 'User not found' });
+    res.json(user);
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+});
+
 // Delete user (admin only)
 router.delete('/:id', adminOnly, async (req, res) => {
   try {
