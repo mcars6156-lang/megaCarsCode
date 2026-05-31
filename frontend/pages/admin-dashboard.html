@@ -288,6 +288,7 @@
                             <div class="form-group"><label data-i18n="contract.name">Full Name</label><input type="text" id="sellerName"></div>
                             <div class="form-group"><label data-i18n="contract.idNo">ID Number</label><input type="text" id="sellerId"></div>
                             <div class="form-group"><label data-i18n="contract.occupation">Occupation</label><input type="text" id="sellerOcc" value="كاسب"></div>
+                            <div class="form-group"><label data-i18n="contract.idIssueDate">ID Issue Date</label><input type="date" id="sellerIdDate"></div>
                             <div class="form-group"><label data-i18n="contract.phone">Phone</label><input type="text" id="sellerPhone"></div>
                             <div class="form-group"><label data-i18n="contract.city">City</label><input type="text" id="sellerCity" value="دهوك"></div>
                         </div>
@@ -296,6 +297,7 @@
                             <div class="form-group"><label data-i18n="contract.name">Full Name</label><input type="text" id="buyerName"></div>
                             <div class="form-group"><label data-i18n="contract.idNo">ID Number</label><input type="text" id="buyerId"></div>
                             <div class="form-group"><label data-i18n="contract.occupation">Occupation</label><input type="text" id="buyerOcc"></div>
+                            <div class="form-group"><label data-i18n="contract.idIssueDate">ID Issue Date</label><input type="date" id="buyerIdDate"></div>
                             <div class="form-group"><label data-i18n="contract.phone">Phone</label><input type="text" id="buyerPhone"></div>
                             <div class="form-group"><label data-i18n="contract.phone2">Phone 2</label><input type="text" id="buyerPhone2"></div>
                             <div class="form-group"><label data-i18n="contract.city">City</label><input type="text" id="buyerCity" value="دهوك"></div>
@@ -326,14 +328,20 @@
                         <div class="form-group"><label data-i18n="contract.monthly">Monthly ($)</label><input type="number" id="contractMonthly" oninput="updateContractMonths()"></div>
                         <div class="form-group"><label data-i18n="contract.numMonths">No. of Months</label><input type="number" id="contractMonths"></div>
                         <div class="form-group"><label data-i18n="contract.firstDate">First Payment Date</label><input type="date" id="contractFirstDate"></div>
+                        <div class="form-group"><label data-i18n="contract.instNotes">Installment Notes</label><input type="text" id="contractInstNotes" placeholder="e.g. 100"></div>
                     </div>
                     <div class="form-group" style="margin-top:8px">
                         <label data-i18n="contract.notes">Notes</label>
                         <textarea id="contractNotes" rows="2" style="width:100%;padding:8px;border:1px solid var(--border);border-radius:6px;resize:vertical"></textarea>
                     </div>
-                    <button class="btn btn-primary" onclick="printContract()" style="margin-top:12px">
-                        <i class="fas fa-print"></i> <span data-i18n="contract.generate">Generate &amp; Print</span>
-                    </button>
+                    <div style="display:flex;gap:10px;margin-top:12px;flex-wrap:wrap">
+                        <button class="btn btn-primary" onclick="printContract()">
+                            <i class="fas fa-print"></i> <span data-i18n="contract.generate">Generate &amp; Print Contract</span>
+                        </button>
+                        <button class="btn btn-success" onclick="printPaymentSchedule()">
+                            <i class="fas fa-calendar-alt"></i> <span data-i18n="contract.printSchedule">Print Payment Schedule</span>
+                        </button>
+                    </div>
                 </div>
             </section>
 
