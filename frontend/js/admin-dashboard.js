@@ -259,6 +259,22 @@ async function loadAdminCars() {
     } catch (error) { console.error('Error loading cars:', error); }
 }
 
+// Rebuilds <select> options with translated text — fixes macOS native dropdown caching
+function buildSelectOptions(selectId, opts) {
+    const sel = document.getElementById(selectId);
+    if (!sel) return;
+    const current = sel.value;
+    sel.innerHTML = opts.map(([val, key]) => `<option value="${val}">${t(key)}</option>`).join('');
+    if (current) sel.value = current;
+}
+
+const FUEL_OPTS  = [['petrol','dyn.fuel.petrol'],['diesel','dyn.fuel.diesel'],['hybrid','dyn.fuel.hybrid'],['electric','dyn.fuel.electric']];
+const TRANS_OPTS = [['automatic','dyn.trans.automatic'],['manual','dyn.trans.manual']];
+const BODY_OPTS  = [['sedan','dyn.body.sedan'],['suv','dyn.body.suv'],['hatchback','dyn.body.hatchback'],['coupe','dyn.body.coupe'],['pickup','dyn.body.pickup'],['van','dyn.body.van']];
+const COND_OPTS  = [['used','dyn.cond.used'],['new','dyn.cond.new'],['certified','dyn.cond.certified']];
+const STAT_OPTS  = [['available','dyn.available'],['sold','dyn.status.sold'],['pending','dyn.status.pending'],['in-service','dyn.status.inservice']];
+const ROLE_OPTS  = [['user','dyn.role.user'],['admin','dyn.role.admin']];
+
 async function openAdminEditCar(carId) {
     try {
         const token = localStorage.getItem('token');
@@ -273,13 +289,22 @@ async function openAdminEditCar(carId) {
         document.getElementById('adminEditPrice').value          = car.price        || '';
         document.getElementById('adminEditMileage').value        = car.mileage      || '';
         document.getElementById('adminEditColor').value          = car.color        || '';
-        document.getElementById('adminEditFuel').value           = car.fuel         || 'petrol';
-        document.getElementById('adminEditTransmission').value   = car.transmission || 'automatic';
-        document.getElementById('adminEditBodyType').value       = car.bodyType     || 'sedan';
-        document.getElementById('adminEditCondition').value      = car.condition    || 'used';
-        document.getElementById('adminEditStatus').value         = car.status       || 'available';
         document.getElementById('adminEditVin').value            = car.vin          || '';
         document.getElementById('adminEditDescription').value    = car.description  || '';
+
+        // Rebuild options with current language, then set values
+        buildSelectOptions('adminEditFuel',         FUEL_OPTS);
+        buildSelectOptions('adminEditTransmission',  TRANS_OPTS);
+        buildSelectOptions('adminEditBodyType',       BODY_OPTS);
+        buildSelectOptions('adminEditCondition',      COND_OPTS);
+        buildSelectOptions('adminEditStatus',         STAT_OPTS);
+
+        // Re-set values after rebuilding options
+        document.getElementById('adminEditFuel').value          = car.fuel         || 'petrol';
+        document.getElementById('adminEditTransmission').value  = car.transmission || 'automatic';
+        document.getElementById('adminEditBodyType').value      = car.bodyType     || 'sedan';
+        document.getElementById('adminEditCondition').value     = car.condition    || 'used';
+        document.getElementById('adminEditStatus').value        = car.status       || 'available';
 
         document.getElementById('adminEditCarModal').classList.remove('hidden');
         document.body.style.overflow = 'hidden';
@@ -371,6 +396,7 @@ function openAdminEditUser(id, name, email, phone, city, role) {
     document.getElementById('adminEditUserEmail').value = email;
     document.getElementById('adminEditUserPhone').value = phone;
     document.getElementById('adminEditUserCity').value  = city;
+    buildSelectOptions('adminEditUserRole', ROLE_OPTS);
     document.getElementById('adminEditUserRole').value  = role;
     document.getElementById('adminEditUserModal').classList.remove('hidden');
     document.body.style.overflow = 'hidden';

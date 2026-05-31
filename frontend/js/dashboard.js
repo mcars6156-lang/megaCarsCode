@@ -251,6 +251,20 @@ function renderCarsGrid(cars) {
 
 // ── Edit modal ────────────────────────────────────────────
 
+function buildSelectOptions(selectId, opts) {
+    const sel = document.getElementById(selectId);
+    if (!sel) return;
+    const current = sel.value;
+    sel.innerHTML = opts.map(([val, key]) => `<option value="${val}">${t(key)}</option>`).join('');
+    if (current) sel.value = current;
+}
+
+const FUEL_OPTS  = [['petrol','dyn.fuel.petrol'],['diesel','dyn.fuel.diesel'],['hybrid','dyn.fuel.hybrid'],['electric','dyn.fuel.electric']];
+const TRANS_OPTS = [['automatic','dyn.trans.automatic'],['manual','dyn.trans.manual']];
+const BODY_OPTS  = [['sedan','dyn.body.sedan'],['suv','dyn.body.suv'],['hatchback','dyn.body.hatchback'],['coupe','dyn.body.coupe'],['pickup','dyn.body.pickup'],['van','dyn.body.van']];
+const COND_OPTS  = [['used','dyn.cond.used'],['new','dyn.cond.new'],['certified','dyn.cond.certified']];
+const STAT_OPTS  = [['available','dyn.available'],['sold','dyn.status.sold'],['pending','dyn.status.pending'],['in-service','dyn.status.inservice']];
+
 async function openEditModal(carId) {
     try {
         const res = await fetch(`${API_BASE_URL}/cars/${carId}`);
@@ -263,13 +277,20 @@ async function openEditModal(carId) {
         document.getElementById('editPrice').value          = car.price || '';
         document.getElementById('editMileage').value        = car.mileage || '';
         document.getElementById('editColor').value          = car.color || '';
-        document.getElementById('editFuel').value           = car.fuel || 'petrol';
-        document.getElementById('editTransmission').value   = car.transmission || 'automatic';
-        document.getElementById('editBodyType').value       = car.bodyType || 'sedan';
-        document.getElementById('editCondition').value      = car.condition || 'used';
-        document.getElementById('editStatus').value         = car.status || 'available';
         document.getElementById('editVin').value            = car.vin || '';
-        document.getElementById('editDescription').value   = car.description || '';
+        document.getElementById('editDescription').value    = car.description || '';
+
+        buildSelectOptions('editFuel',         FUEL_OPTS);
+        buildSelectOptions('editTransmission',  TRANS_OPTS);
+        buildSelectOptions('editBodyType',       BODY_OPTS);
+        buildSelectOptions('editCondition',      COND_OPTS);
+        buildSelectOptions('editStatus',         STAT_OPTS);
+
+        document.getElementById('editFuel').value          = car.fuel         || 'petrol';
+        document.getElementById('editTransmission').value  = car.transmission || 'automatic';
+        document.getElementById('editBodyType').value      = car.bodyType     || 'sedan';
+        document.getElementById('editCondition').value     = car.condition    || 'used';
+        document.getElementById('editStatus').value        = car.status       || 'available';
 
         document.getElementById('editCarModal').classList.remove('hidden');
         document.body.style.overflow = 'hidden';
