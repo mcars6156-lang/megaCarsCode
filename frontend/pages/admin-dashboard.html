@@ -31,6 +31,12 @@
                 <a href="#" class="admin-menu-item" onclick="showAdminSection('expenses', event)">
                     <i class="fas fa-receipt"></i><span data-i18n="admin.menu.expenses">Expenses</span>
                 </a>
+                <a href="#" class="admin-menu-item" onclick="showAdminSection('calculator', event)">
+                    <i class="fas fa-calculator"></i><span data-i18n="calc.title">Calculator</span>
+                </a>
+                <a href="#" class="admin-menu-item" onclick="showAdminSection('contracts', event)">
+                    <i class="fas fa-file-contract"></i><span data-i18n="contract.title">Contracts</span>
+                </a>
                 <a href="#" class="admin-menu-item" onclick="showAdminSection('settings', event)">
                     <i class="fas fa-cog"></i><span data-i18n="admin.menu.settings">Settings</span>
                 </a>
@@ -176,6 +182,9 @@
             <section id="sales" class="admin-section hidden">
                 <div class="section-header">
                     <h3 class="section-title"><i class="fas fa-chart-bar"></i> <span data-i18n="admin.sales.title">تقارير المبيعات</span></h3>
+                    <button class="btn btn-secondary" onclick="exportSalesCSV()">
+                        <i class="fas fa-file-csv"></i> <span data-i18n="exp.export">Export CSV</span>
+                    </button>
                 </div>
                 <div id="salesReport" class="sales-table"></div>
             </section>
@@ -184,6 +193,9 @@
             <section id="expenses" class="admin-section hidden">
                 <div class="section-header">
                     <h3 class="section-title"><i class="fas fa-receipt"></i> <span data-i18n="admin.menu.expenses">Expenses</span></h3>
+                    <button class="btn btn-secondary" onclick="exportExpensesCSV()">
+                        <i class="fas fa-file-csv"></i> <span data-i18n="exp.export">Export CSV</span>
+                    </button>
                 </div>
 
                 <!-- Exchange rate bar -->
@@ -226,6 +238,81 @@
 
                 <!-- List -->
                 <div id="expensesList"></div>
+            </section>
+
+            <!-- ── Installment Calculator ─────────────────── -->
+            <section id="calculator" class="admin-section hidden">
+                <div class="section-header">
+                    <h3 class="section-title"><i class="fas fa-calculator"></i> <span data-i18n="calc.title">Installment Calculator</span></h3>
+                </div>
+                <div class="settings-card">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label data-i18n="calc.totalPrice">Total Installment Price ($)</label>
+                            <input type="number" id="calcTotalPrice" placeholder="18600" oninput="calculateInstallments()">
+                        </div>
+                        <div class="form-group">
+                            <label data-i18n="calc.downPayment">Down Payment ($)</label>
+                            <input type="number" id="calcDownPayment" placeholder="6000" oninput="calculateInstallments()">
+                        </div>
+                    </div>
+                    <div id="calcResult"><p style="color:var(--text-muted);padding:16px 0" data-i18n="calc.hint">Enter values above to see payment options</p></div>
+                </div>
+            </section>
+
+            <!-- ── Sale Contracts ─────────────────────────── -->
+            <section id="contracts" class="admin-section hidden">
+                <div class="section-header">
+                    <h3 class="section-title"><i class="fas fa-file-contract"></i> <span data-i18n="contract.title">Sale Contract</span></h3>
+                </div>
+                <div class="settings-card">
+                    <div class="form-row">
+                        <div class="form-group"><label data-i18n="contract.number">Contract No.</label><input type="text" id="contractNo" placeholder="1001"></div>
+                        <div class="form-group"><label data-i18n="contract.date">Date</label><input type="date" id="contractDate"></div>
+                    </div>
+                    <div class="form-row" style="align-items:start">
+                        <div style="flex:1;border:1px solid var(--border);border-radius:8px;padding:14px">
+                            <h5 style="margin:0 0 10px;color:var(--primary)" data-i18n="contract.party1">Seller (Party 1)</h5>
+                            <div class="form-group"><label data-i18n="contract.name">Full Name</label><input type="text" id="sellerName"></div>
+                            <div class="form-group"><label data-i18n="contract.idNo">ID Number</label><input type="text" id="sellerId"></div>
+                            <div class="form-group"><label data-i18n="contract.occupation">Occupation</label><input type="text" id="sellerOcc" value="كاسب"></div>
+                            <div class="form-group"><label data-i18n="contract.phone">Phone</label><input type="text" id="sellerPhone"></div>
+                            <div class="form-group"><label data-i18n="contract.city">City</label><input type="text" id="sellerCity" value="دهوك"></div>
+                        </div>
+                        <div style="flex:1;border:1px solid var(--border);border-radius:8px;padding:14px">
+                            <h5 style="margin:0 0 10px;color:var(--success)" data-i18n="contract.party2">Buyer (Party 2)</h5>
+                            <div class="form-group"><label data-i18n="contract.name">Full Name</label><input type="text" id="buyerName"></div>
+                            <div class="form-group"><label data-i18n="contract.idNo">ID Number</label><input type="text" id="buyerId"></div>
+                            <div class="form-group"><label data-i18n="contract.occupation">Occupation</label><input type="text" id="buyerOcc"></div>
+                            <div class="form-group"><label data-i18n="contract.phone">Phone</label><input type="text" id="buyerPhone"></div>
+                            <div class="form-group"><label data-i18n="contract.city">City</label><input type="text" id="buyerCity" value="دهوك"></div>
+                        </div>
+                    </div>
+                    <h5 style="margin:16px 0 8px;border-bottom:1px solid var(--border);padding-bottom:6px" data-i18n="contract.carInfo">Car Details</h5>
+                    <div class="form-row">
+                        <div class="form-group"><label data-i18n="contract.brand">Brand / Type</label><input type="text" id="contractBrand"></div>
+                        <div class="form-group"><label data-i18n="contract.yearModel">Year / Model</label><input type="text" id="contractYear"></div>
+                        <div class="form-group"><label data-i18n="contract.color">Color</label><input type="text" id="contractColor"></div>
+                        <div class="form-group"><label data-i18n="contract.engineNo">Engine No.</label><input type="text" id="contractEngineNo"></div>
+                        <div class="form-group"><label data-i18n="contract.chassisNo">Chassis / VIN</label><input type="text" id="contractVin"></div>
+                    </div>
+                    <h5 style="margin:16px 0 8px;border-bottom:1px solid var(--border);padding-bottom:6px" data-i18n="contract.payment">Payment Details</h5>
+                    <div class="form-row">
+                        <div class="form-group"><label data-i18n="contract.totalPrice">Total Price ($)</label><input type="number" id="contractTotal" oninput="updateContractRemaining()"></div>
+                        <div class="form-group"><label data-i18n="contract.downPayment">Down Payment ($)</label><input type="number" id="contractDown" oninput="updateContractRemaining()"></div>
+                        <div class="form-group"><label data-i18n="contract.remaining">Remaining ($)</label><input type="number" id="contractRemaining" readonly style="background:var(--bg-secondary)"></div>
+                        <div class="form-group"><label data-i18n="contract.monthly">Monthly ($)</label><input type="number" id="contractMonthly" oninput="updateContractMonths()"></div>
+                        <div class="form-group"><label data-i18n="contract.numMonths">No. of Months</label><input type="number" id="contractMonths"></div>
+                        <div class="form-group"><label data-i18n="contract.firstDate">First Payment Date</label><input type="date" id="contractFirstDate"></div>
+                    </div>
+                    <div class="form-group" style="margin-top:8px">
+                        <label data-i18n="contract.notes">Notes</label>
+                        <textarea id="contractNotes" rows="2" style="width:100%;padding:8px;border:1px solid var(--border);border-radius:6px;resize:vertical"></textarea>
+                    </div>
+                    <button class="btn btn-primary" onclick="printContract()" style="margin-top:12px">
+                        <i class="fas fa-print"></i> <span data-i18n="contract.generate">Generate &amp; Print</span>
+                    </button>
+                </div>
             </section>
 
             <section id="settings" class="admin-section hidden">
