@@ -25,7 +25,9 @@ function showSection(sectionId, e) {
         'my-sales':     t('dash.section.purchases'),
         'installments': t('dash.section.installments'),
         'sell-car':     t('dash.section.sellCar'),
-        'settings':     t('dash.section.settings')
+        'settings':     t('dash.section.settings'),
+        'calculator':   t('calc.title'),
+        'contracts':    t('contract.title')
     };
     document.getElementById('pageTitle').textContent = titles[sectionId] || t('dash.section.dashboard');
 
@@ -327,6 +329,193 @@ async function deleteCarInventory(carId) {
     } catch (err) { console.error('Error deleting car:', err); alert(t('alert.carDeleteFailed')); }
 }
 
+// ── Installment Calculator ────────────────────────────────
+
+function calculateInstallments() {
+    const total = parseFloat(document.getElementById('calcTotalPrice')?.value) || 0;
+    const down  = parseFloat(document.getElementById('calcDownPayment')?.value) || 0;
+    const el    = document.getElementById('calcResult');
+    if (!el) return;
+
+    if (!total || !down || down >= total) {
+        el.innerHTML = `<p class="calc-hint">${t('calc.hint')}</p>`;
+        return;
+    }
+
+    const remaining = total - down;
+    const options   = [250, 300, 350, 400, 450, 500];
+
+    el.innerHTML = `
+        <table class="inv-table">
+            <thead><tr>
+                <th>${t('calc.months')}</th>
+                <th>${t('calc.monthly')}</th>
+                <th>${t('calc.remaining')}</th>
+                <th>${t('calc.downPayment')}</th>
+                <th>${t('calc.total')}</th>
+            </tr></thead>
+            <tbody>${options.map(m => {
+                const months = Math.ceil(remaining / m);
+                const tot    = down + (m * months);
+                return `<tr>
+                    <td><strong>${months}</strong></td>
+                    <td>$${m.toLocaleString()}</td>
+                    <td>$${remaining.toLocaleString()}</td>
+                    <td>$${down.toLocaleString()}</td>
+                    <td><strong>$${tot.toLocaleString()}</strong></td>
+                </tr>`;
+            }).join('')}</tbody>
+        </table>`;
+}
+
+// ── Sale Contract ─────────────────────────────────────────
+
+function updateContractRemaining() {
+    const total = parseFloat(document.getElementById('contractTotal')?.value) || 0;
+    const down  = parseFloat(document.getElementById('contractDown')?.value)  || 0;
+    const rem   = total - down;
+    const el    = document.getElementById('contractRemaining');
+    if (el) el.value = rem > 0 ? rem : '';
+    updateContractMonths();
+}
+
+function updateContractMonths() {
+    const rem     = parseFloat(document.getElementById('contractRemaining')?.value) || 0;
+    const monthly = parseFloat(document.getElementById('contractMonthly')?.value)   || 0;
+    const el      = document.getElementById('contractMonths');
+    if (el && rem && monthly) el.value = Math.ceil(rem / monthly);
+}
+
+function printContract() {
+    const g  = id => document.getElementById(id)?.value || '';
+    const fd = d  => d ? new Date(d).toLocaleDateString('ar-IQ') : '............';
+
+    const html = `<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head>
+<meta charset="UTF-8">
+<title>عقد رقم ${g('contractNo')}</title>
+<style>
+  *{box-sizing:border-box}
+  body{font-family:Arial,sans-serif;margin:0;padding:15px;direction:rtl;font-size:13px}
+  .page{max-width:780px;margin:0 auto;border:2px solid #333;padding:20px}
+  .hdr{display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid #333;padding-bottom:12px;margin-bottom:12px}
+  .hdr-side{font-size:12px;line-height:1.8}
+  .hdr-center{text-align:center}
+  .hdr-center img{width:65px;height:65px;object-fit:contain;border-radius:50%}
+  .meta{display:flex;justify-content:space-between;margin-bottom:10px;font-size:13px}
+  .ct{text-align:center;font-size:20px;font-weight:bold;border:2px solid #333;padding:8px;margin:12px 0}
+  .stitle{background:#eee;border:1px solid #999;padding:6px 10px;font-weight:bold;margin:10px 0 0}
+  table{width:100%;border-collapse:collapse}
+  td{border:1px solid #bbb;padding:5px 8px}
+  .lbl{background:#f8f8f8;font-weight:bold;width:35%}
+  .terms{border:1px solid #bbb;padding:10px;font-size:12px}
+  .terms ol{margin:0;padding-right:18px}
+  .terms li{margin-bottom:3px}
+  .sigs{display:flex;justify-content:space-between;margin-top:35px}
+  .sig{text-align:center;width:40%}
+  .sig-line{border-top:1px solid #333;padding-top:5px;margin-top:50px}
+  .pbtn{text-align:center;margin-bottom:15px}
+  .pbtn button{padding:10px 30px;background:#2563eb;color:white;border:none;border-radius:6px;cursor:pointer;font-size:15px}
+  @media print{.pbtn{display:none}}
+</style>
+</head>
+<body>
+<div class="pbtn"><button onclick="window.print()">🖨️ طباعة / Print</button></div>
+<div class="page">
+  <div class="hdr">
+    <div class="hdr-side">
+      <strong>Mega Cars Show</strong><br>
+      For All Types of Cars Trading<br>
+      Tel: 0751 121 1511<br>0774 088 6657
+    </div>
+    <div class="hdr-center">
+      <img src="/images/logo-small.png" alt="Mega Cars"><br>
+      <strong style="font-size:14px">Mega Cars</strong><br>
+      <span style="font-size:11px">لبيع وشراء السيارات</span>
+    </div>
+    <div class="hdr-side" style="text-align:right">
+      <strong>معرض ميگا كارس</strong><br>
+      دهوك - پيشانگه هين ترومبيلا<br>
+      تيرمنال معرض رقم 27
+    </div>
+  </div>
+  <div class="meta">
+    <span>تاريخ العقد: <strong>${fd(g('contractDate'))}</strong></span>
+    <span>رقم العقد: <strong>${g('contractNo') || '----'}</strong></span>
+  </div>
+  <div class="ct">عقد بيع وشراء سيارة</div>
+  <div class="stitle">بيانات المتعاقدين</div>
+  <table><tr>
+    <td style="width:50%;vertical-align:top;border:none;padding:0">
+      <table>
+        <tr><td colspan="2" style="background:#ddd;font-weight:bold;text-align:center">الطرف الأول (البائع)</td></tr>
+        <tr><td class="lbl">الاسم:</td><td>${g('sellerName')}</td></tr>
+        <tr><td class="lbl">رقم الهوية:</td><td>${g('sellerId')}</td></tr>
+        <tr><td class="lbl">المهنة:</td><td>${g('sellerOcc')}</td></tr>
+        <tr><td class="lbl">رقم الهاتف:</td><td>${g('sellerPhone')}</td></tr>
+        <tr><td class="lbl">السكن:</td><td>${g('sellerCity')}</td></tr>
+      </table>
+    </td>
+    <td style="width:50%;vertical-align:top;border:none;padding:0">
+      <table>
+        <tr><td colspan="2" style="background:#ddd;font-weight:bold;text-align:center">الطرف الثاني (المشتري)</td></tr>
+        <tr><td class="lbl">الاسم:</td><td>${g('buyerName')}</td></tr>
+        <tr><td class="lbl">رقم الهوية:</td><td>${g('buyerId')}</td></tr>
+        <tr><td class="lbl">المهنة:</td><td>${g('buyerOcc')}</td></tr>
+        <tr><td class="lbl">رقم الهاتف:</td><td>${g('buyerPhone')}</td></tr>
+        <tr><td class="lbl">السكن:</td><td>${g('buyerCity')}</td></tr>
+      </table>
+    </td>
+  </tr></table>
+  <div class="stitle">بيانات السيارة والمبالغ</div>
+  <table>
+    <tr>
+      <td><strong>النوع:</strong> ${g('contractBrand')}</td>
+      <td><strong>الموديل:</strong> ${g('contractYear')}</td>
+      <td><strong>اللون:</strong> ${g('contractColor')}</td>
+    </tr>
+    <tr>
+      <td><strong>رقم المحرك:</strong> ${g('contractEngineNo')}</td>
+      <td colspan="2"><strong>رقم الشاسي:</strong> ${g('contractVin')}</td>
+    </tr>
+    <tr>
+      <td><strong>السعر الكلي:</strong> $${Number(g('contractTotal')).toLocaleString()}</td>
+      <td><strong>المبلغ المسدد:</strong> $${Number(g('contractDown')).toLocaleString()}</td>
+      <td><strong>المبلغ المتبقي:</strong> $${Number(g('contractRemaining')).toLocaleString()}</td>
+    </tr>
+    <tr>
+      <td><strong>مبلغ القسط:</strong> $${Number(g('contractMonthly')).toLocaleString()}/شهر</td>
+      <td><strong>عدد الأشهر:</strong> ${g('contractMonths')} شهر</td>
+      <td><strong>أول قسط:</strong> ${fd(g('contractFirstDate'))}</td>
+    </tr>
+  </table>
+  <div class="stitle">الشروط والملاحظات</div>
+  <div class="terms"><ol>
+    <li>يتم دفع مقدمة العقد بالدولار عند توقيع الاتفاق.</li>
+    <li>يتم تسديد باقي المبلغ على شكل أقساط شهرية بالدولار حسب الاتفاق بين الطرفين.</li>
+    <li>ينظم هذا العقد من قبل المعرض ويكون موثقاً بين البائع والمشتري.</li>
+    <li>يتم تسليم وصل أمانة من قبل المشتري لصالح المعرض كضمان.</li>
+    <li>يلتزم المعرض بإعطاء وصل قبض شهري للمشتري عند كل دفعة.</li>
+    <li>يتم منح وكالة قيادة للمشتري لاستخدام السيارة لحين إتمام السداد.</li>
+    <li>لا يحق للمشتري بيع أو التنازل عن السيارة إلا بعد تسديد كامل المبلغ المتفق عليه.</li>
+    <li>لا يجوز استيفاء أي أتعاب أو رسوم إضافية عند نقل ملكية السيارة بعد إتمام السداد الكامل.</li>
+    <li>يدفع المشتري مبلغ (100) دولار للمعرض عند توقيع العقد + أتعاب الناشر.</li>
+    <li>ويكون موعد دفع الأقساط من اليوم الأول إلى اليوم الخامس من كل شهر حصراً.</li>
+    ${g('contractNotes') ? `<li>${g('contractNotes')}</li>` : ''}
+  </ol></div>
+  <div class="sigs">
+    <div class="sig"><div class="sig-line">توقيع الطرف الأول (البائع)</div></div>
+    <div class="sig"><div class="sig-line">توقيع الطرف الثاني (المشتري)</div></div>
+  </div>
+</div>
+</body></html>`;
+
+    const w = window.open('', '_blank', 'width=900,height=750,scrollbars=yes');
+    w.document.write(html);
+    w.document.close();
+}
+
 // ── Sales records ─────────────────────────────────────────
 
 async function loadSales() {
@@ -456,6 +645,18 @@ document.addEventListener('DOMContentLoaded', () => {
     updateUserName();
     updateWelcomeBanner();
     loadDashboard();
+
+    // Contract defaults
+    const today = new Date().toISOString().split('T')[0];
+    const el = document.getElementById('contractDate');
+    if (el) el.value = today;
+    const firstDate = new Date(); firstDate.setMonth(firstDate.getMonth() + 1); firstDate.setDate(1);
+    const elFirst = document.getElementById('contractFirstDate');
+    if (elFirst) elFirst.value = firstDate.toISOString().split('T')[0];
+    if (currentUser) {
+        const sn = document.getElementById('sellerName'); if (sn) sn.value = currentUser.name || '';
+        const sp = document.getElementById('sellerPhone'); if (sp) sp.value = currentUser.phone || '';
+    }
 
     // Close modal when clicking outside
     document.getElementById('editCarModal')?.addEventListener('click', (e) => {

@@ -12,7 +12,7 @@
     <div class="dashboard-container">
         <aside class="sidebar" id="sidebar">
             <div class="sidebar-header">
-                <h3 data-i18n="dash.brand">Mega Cars</h3>
+                <img src="../images/logo-small.png" alt="Mega Cars" class="sidebar-logo">
                 <button class="toggle-btn" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
             </div>
             <nav class="sidebar-menu">
@@ -33,6 +33,12 @@
                 </a>
                 <a href="#" class="menu-item" onclick="showSection('settings', event)">
                     <i class="fas fa-cog"></i><span data-i18n="dash.menu.settings">Settings</span>
+                </a>
+                <a href="#" class="menu-item" onclick="showSection('calculator', event)">
+                    <i class="fas fa-calculator"></i><span data-i18n="dash.menu.calculator">Calculator</span>
+                </a>
+                <a href="#" class="menu-item" onclick="showSection('contracts', event)">
+                    <i class="fas fa-file-contract"></i><span data-i18n="dash.menu.contracts">Contracts</span>
                 </a>
                 <a href="../index.html" class="menu-item">
                     <i class="fas fa-home"></i><span data-i18n="nav.home">Home</span>
@@ -319,6 +325,83 @@
             </section>
         </main>
     </div>
+
+            <!-- ── Installment Calculator ──────────────────── -->
+            <section id="calculator" class="content-section hidden">
+                <h4 class="section-title"><i class="fas fa-calculator"></i> <span data-i18n="calc.title">Installment Calculator</span></h4>
+                <div class="calc-card">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label data-i18n="calc.totalPrice">Total Installment Price ($)</label>
+                            <input type="number" id="calcTotalPrice" placeholder="18600" oninput="calculateInstallments()">
+                        </div>
+                        <div class="form-group">
+                            <label data-i18n="calc.downPayment">Down Payment ($)</label>
+                            <input type="number" id="calcDownPayment" placeholder="6000" oninput="calculateInstallments()">
+                        </div>
+                    </div>
+                    <div id="calcResult"><p class="calc-hint" data-i18n="calc.hint">Enter values above to see payment options</p></div>
+                </div>
+            </section>
+
+            <!-- ── Sale Contracts ──────────────────────────── -->
+            <section id="contracts" class="content-section hidden">
+                <h4 class="section-title"><i class="fas fa-file-contract"></i> <span data-i18n="contract.title">Sale Contract</span></h4>
+                <div class="contract-form-card">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label data-i18n="contract.number">Contract No.</label>
+                            <input type="text" id="contractNo" placeholder="1001">
+                        </div>
+                        <div class="form-group">
+                            <label data-i18n="contract.date">Date</label>
+                            <input type="date" id="contractDate">
+                        </div>
+                    </div>
+                    <div class="contract-parties">
+                        <div class="party-section">
+                            <h5 data-i18n="contract.party1">Seller (Party 1)</h5>
+                            <div class="form-group"><label data-i18n="contract.name">Full Name</label><input type="text" id="sellerName"></div>
+                            <div class="form-group"><label data-i18n="contract.idNo">ID Number</label><input type="text" id="sellerId"></div>
+                            <div class="form-group"><label data-i18n="contract.occupation">Occupation</label><input type="text" id="sellerOcc" value="كاسب"></div>
+                            <div class="form-group"><label data-i18n="contract.phone">Phone</label><input type="text" id="sellerPhone"></div>
+                            <div class="form-group"><label data-i18n="contract.city">City</label><input type="text" id="sellerCity" value="دهوك"></div>
+                        </div>
+                        <div class="party-section">
+                            <h5 data-i18n="contract.party2">Buyer (Party 2)</h5>
+                            <div class="form-group"><label data-i18n="contract.name">Full Name</label><input type="text" id="buyerName"></div>
+                            <div class="form-group"><label data-i18n="contract.idNo">ID Number</label><input type="text" id="buyerId"></div>
+                            <div class="form-group"><label data-i18n="contract.occupation">Occupation</label><input type="text" id="buyerOcc"></div>
+                            <div class="form-group"><label data-i18n="contract.phone">Phone</label><input type="text" id="buyerPhone"></div>
+                            <div class="form-group"><label data-i18n="contract.city">City</label><input type="text" id="buyerCity" value="دهوك"></div>
+                        </div>
+                    </div>
+                    <h5 class="subsection-title" data-i18n="contract.carInfo">Car Details</h5>
+                    <div class="form-grid">
+                        <div class="form-group"><label data-i18n="contract.brand">Brand / Type</label><input type="text" id="contractBrand"></div>
+                        <div class="form-group"><label data-i18n="contract.yearModel">Year / Model</label><input type="text" id="contractYear"></div>
+                        <div class="form-group"><label data-i18n="contract.color">Color</label><input type="text" id="contractColor"></div>
+                        <div class="form-group"><label data-i18n="contract.engineNo">Engine No.</label><input type="text" id="contractEngineNo"></div>
+                        <div class="form-group"><label data-i18n="contract.chassisNo">Chassis / VIN</label><input type="text" id="contractVin"></div>
+                    </div>
+                    <h5 class="subsection-title" data-i18n="contract.payment">Payment Details</h5>
+                    <div class="form-grid">
+                        <div class="form-group"><label data-i18n="contract.totalPrice">Total Price ($)</label><input type="number" id="contractTotal" oninput="updateContractRemaining()"></div>
+                        <div class="form-group"><label data-i18n="contract.downPayment">Down Payment ($)</label><input type="number" id="contractDown" oninput="updateContractRemaining()"></div>
+                        <div class="form-group"><label data-i18n="contract.remaining">Remaining ($)</label><input type="number" id="contractRemaining" readonly style="background:var(--bg-secondary)"></div>
+                        <div class="form-group"><label data-i18n="contract.monthly">Monthly Installment ($)</label><input type="number" id="contractMonthly" oninput="updateContractMonths()"></div>
+                        <div class="form-group"><label data-i18n="contract.numMonths">No. of Months</label><input type="number" id="contractMonths"></div>
+                        <div class="form-group"><label data-i18n="contract.firstDate">First Payment Date</label><input type="date" id="contractFirstDate"></div>
+                    </div>
+                    <div class="form-group full-width">
+                        <label data-i18n="contract.notes">Notes</label>
+                        <textarea id="contractNotes" rows="2"></textarea>
+                    </div>
+                    <button class="btn btn-primary" onclick="printContract()">
+                        <i class="fas fa-print"></i> <span data-i18n="contract.generate">Generate &amp; Print</span>
+                    </button>
+                </div>
+            </section>
 
     <!-- ── Edit Car Modal ──────────────────────────────────── -->
     <div id="editCarModal" class="modal-overlay hidden">

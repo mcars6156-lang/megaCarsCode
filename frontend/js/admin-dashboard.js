@@ -181,7 +181,41 @@ async function loadAdminSalesReports() {
             document.getElementById('salesReport').innerHTML = `<p style="color:var(--text-muted);padding:20px">–</p>`;
             return;
         }
+
+        const cashTypes  = ['cash', 'check', 'bank_transfer'];
+        const cashSales  = sales.filter(s => cashTypes.includes(s.paymentMethod));
+        const instSales  = sales.filter(s => s.paymentMethod === 'installment');
+        const cashTotal  = cashSales.reduce((sum, s) => sum + (s.salePrice || 0), 0);
+        const instTotal  = instSales.reduce((sum, s) => sum + (s.salePrice || 0), 0);
+        const totalRev   = cashTotal + instTotal;
+
         document.getElementById('salesReport').innerHTML = `
+            <div class="report-summary">
+                <div class="report-stat">
+                    <div class="stat-icon green"><i class="fas fa-money-bill-wave"></i></div>
+                    <div class="stat-info">
+                        <h3>${t('report.cashTotal')}</h3>
+                        <p>$${cashTotal.toLocaleString()}</p>
+                        <small>${cashSales.length} ${t('report.deals')}</small>
+                    </div>
+                </div>
+                <div class="report-stat">
+                    <div class="stat-icon blue"><i class="fas fa-credit-card"></i></div>
+                    <div class="stat-info">
+                        <h3>${t('report.installTotal')}</h3>
+                        <p>$${instTotal.toLocaleString()}</p>
+                        <small>${instSales.length} ${t('report.deals')}</small>
+                    </div>
+                </div>
+                <div class="report-stat">
+                    <div class="stat-icon amber"><i class="fas fa-chart-line"></i></div>
+                    <div class="stat-info">
+                        <h3>${t('report.revenue')}</h3>
+                        <p>$${totalRev.toLocaleString()}</p>
+                        <small>${sales.length} ${t('report.totalDeals')}</small>
+                    </div>
+                </div>
+            </div>
             <table>
                 <thead><tr>
                     <th>${t('admin.sales.car')}</th>

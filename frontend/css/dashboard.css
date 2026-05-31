@@ -757,3 +757,17 @@ body.dark-theme {
   gap: 10px;
   flex-shrink: 0;
 }
+
+/* ── Logo ─────────────────────────────────────────────── */
+.sidebar-logo { width: 72px; height: 72px; object-fit: contain; border-radius: 50%; display: block; margin: 0 auto 4px; }
+
+/* ── Calculator ──────────────────────────────────────── */
+.calc-card { background: var(--card-bg); border-radius: var(--radius); padding: 24px; box-shadow: var(--shadow); }
+.calc-hint { color: var(--text-muted); text-align: center; padding: 24px 0; font-size: 14px; }
+
+/* ── Contracts ───────────────────────────────────────── */
+.contract-form-card { background: var(--card-bg); border-radius: var(--radius); padding: 24px; box-shadow: var(--shadow); }
+.contract-parties { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin: 16px 0; }
+.party-section { background: var(--bg-secondary); border-radius: var(--radius); padding: 16px; }
+.party-section h5 { margin: 0 0 12px; font-size: 14px; color: var(--primary); border-bottom: 2px solid var(--primary); padding-bottom: 6px; }
+.subsection-title { font-size: 14px; font-weight: 600; color: var(--text-secondary); margin: 16px 0 8px; border-bottom: 1px solid var(--border); padding-bottom: 4px; }

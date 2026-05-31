@@ -459,3 +459,12 @@ tr:hover td { background: #f8fafc; }
 @media (max-width: 480px) {
   .dashboard-stats { grid-template-columns: 1fr; }
 }
+
+/* ── Logo ─────────────────────────────────────────────── */
+.sidebar-logo { width: 72px; height: 72px; object-fit: contain; border-radius: 50%; display: block; margin: 0 auto 2px; }
+.admin-role-label { font-size: 11px; color: #fca5a5; text-align: center; display: block; }
+
+/* ── Financial Report Summary ────────────────────────── */
+.report-summary { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 24px; }
+.report-stat { display: flex; align-items: center; gap: 14px; background: var(--card-bg); border-radius: var(--radius); padding: 16px; box-shadow: var(--shadow); }
+.report-stat .stat-info small { color: var(--text-muted); font-size: 12px; display: block; margin-top: 2px; }
