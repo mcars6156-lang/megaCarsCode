@@ -22,6 +22,7 @@ function showAdminSection(sectionId, e) {
         'dashboard':  t('admin.section.dashboard'),
         'cars':       t('admin.section.cars'),
         'users':      t('admin.section.users'),
+        'customers':  t('admin.menu.customers'),
         'sales':      t('admin.section.sales'),
         'expenses':   t('admin.menu.expenses'),
         'calculator': t('calc.title'),
@@ -34,6 +35,7 @@ function showAdminSection(sectionId, e) {
     if (sectionId === 'dashboard')  loadAdminDashboard();
     if (sectionId === 'cars')       loadAdminCars();
     if (sectionId === 'users')      loadAdminUsers();
+    if (sectionId === 'customers')  loadCustomers();
     if (sectionId === 'sales')      loadAdminSalesReports();
     if (sectionId === 'expenses')   { loadExpenses(); initExpenseDate(); }
     if (sectionId === 'contracts')  initContractDefaults();
@@ -1559,3 +1561,178 @@ document.addEventListener('click', (e) => {
         if (sidebar?.classList.contains('open')) toggleMobileMenu();
     }
 });
+
+// ── Customer Management ─────────────────────────────────
+
+let _customersCache = [];
+
+async function loadCustomers() {
+    try {
+        const [users, sales] = await Promise.all([
+            fetch(`${API_BASE_URL}/users`, { headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` } }).then(r => r.json()),
+            fetch(`${API_BASE_URL}/admin/reports/sales`, { headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` } }).then(r => r.json())
+        ]);
+
+        const customers = users.filter(u => u.role !== 'admin');
+        const purchasesByUser = {};
+        sales.forEach(s => {
+            const id = s.buyer?._id;
+            if (id) {
+                purchasesByUser[id] = purchasesByUser[id] || { count: 0, total: 0 };
+                purchasesByUser[id].count++;
+                purchasesByUser[id].total += (s.salePrice || 0);
+            }
+        });
+
+        _customersCache = customers.map(c => ({
+            ...c,
+            purchases: purchasesByUser[c._id]?.count || 0,
+            totalSpent: purchasesByUser[c._id]?.total || 0
+        }));
+
+        renderCustomersTable(_customersCache);
+        updateCityFilter();
+    } catch (e) { console.error('Error loading customers:', e); }
+}
+
+function renderCustomersTable(customers) {
+    const el = document.getElementById('customersList');
+    if (!customers.length) {
+        el.innerHTML = `<p style="color:var(--text-muted);padding:20px;text-align:center">${t('admin.customers.noData')}</p>`;
+        return;
+    }
+
+    el.innerHTML = `
+        <table style="width:100%;border-collapse:collapse">
+            <thead>
+                <tr>
+                    <th style="padding:12px;background:var(--page-bg);border-bottom:2px solid var(--border);text-align:start">${t('admin.customers.name')}</th>
+                    <th style="padding:12px;background:var(--page-bg);border-bottom:2px solid var(--border);text-align:start">${t('admin.users.phone')}</th>
+                    <th style="padding:12px;background:var(--page-bg);border-bottom:2px solid var(--border);text-align:start">${t('admin.users.city')}</th>
+                    <th style="padding:12px;background:var(--page-bg);border-bottom:2px solid var(--border);text-align:center">Purchases</th>
+                    <th style="padding:12px;background:var(--page-bg);border-bottom:2px solid var(--border);text-align:start">Total Spent</th>
+                    <th style="padding:12px;background:var(--page-bg);border-bottom:2px solid var(--border);text-align:center">${t('admin.cars.actions')}</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${customers.map((c, i) => `
+                    <tr style="border-bottom:1px solid var(--border)">
+                        <td style="padding:12px"><strong>${c.name}</strong></td>
+                        <td style="padding:12px">${c.phone||'–'}</td>
+                        <td style="padding:12px">${c.city||'–'}</td>
+                        <td style="padding:12px;text-align:center"><span style="background:var(--bg-secondary);padding:4px 8px;border-radius:4px">${c.purchases}</span></td>
+                        <td style="padding:12px"><strong>$${c.totalSpent.toLocaleString()}</strong></td>
+                        <td style="padding:12px;text-align:center;display:flex;gap:6px;justify-content:center">
+                            <button class="btn btn-primary btn-small" onclick="openCustomerModal('${c._id}', '${c.name.replace(/'/g, "\\'")}', '${c.email||''}', '${c.phone||''}', '${c.city||''}')">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="btn btn-danger btn-small" onclick="deleteCustomer('${c._id}')">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </td>
+                    </tr>`).join('')}
+            </tbody>
+        </table>`;
+}
+
+function updateCityFilter() {
+    const cities = [...new Set(_customersCache.map(c => c.city).filter(Boolean))];
+    const sel = document.getElementById('customerFilterCity');
+    const selected = sel.value;
+    sel.innerHTML = `<option value="">All Cities</option>` + cities.map(c => `<option value="${c}">${c}</option>`).join('');
+    sel.value = selected;
+}
+
+function filterCustomers() {
+    const search = document.getElementById('customerSearchInput')?.value.toLowerCase() || '';
+    const city = document.getElementById('customerFilterCity')?.value || '';
+    
+    const filtered = _customersCache.filter(c => {
+        const matchSearch = !search || 
+            c.name.toLowerCase().includes(search) || 
+            (c.phone || '').includes(search) || 
+            (c.idNumber || '').includes(search);
+        const matchCity = !city || c.city === city;
+        return matchSearch && matchCity;
+    });
+
+    renderCustomersTable(filtered);
+}
+
+function openCustomerModal(customerId = '', name = '', email = '', phone = '', city = '') {
+    document.getElementById('customerId').value = customerId;
+    document.getElementById('customerName').value = name;
+    document.getElementById('customerEmail').value = email;
+    document.getElementById('customerPhone').value = phone;
+    document.getElementById('customerCity').value = city;
+    document.getElementById('customerIdType').value = 'national';
+    document.getElementById('customerIdNumber').value = '';
+    document.getElementById('customerDob').value = '';
+    document.getElementById('customerAddress').value = '';
+    document.getElementById('customerNotes').value = '';
+    
+    const h = document.querySelector('#customerModal .modal-title span');
+    if (h) h.textContent = customerId ? t('admin.customers.edit') : t('admin.customers.add');
+    
+    document.getElementById('customerModal').classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeCustomerModal() {
+    document.getElementById('customerModal').classList.add('hidden');
+    document.body.style.overflow = '';
+}
+
+async function saveCustomer() {
+    const id = document.getElementById('customerId').value;
+    const data = {
+        name: document.getElementById('customerName').value,
+        email: document.getElementById('customerEmail').value,
+        phone: document.getElementById('customerPhone').value,
+        city: document.getElementById('customerCity').value,
+        address: document.getElementById('customerAddress').value
+    };
+
+    if (!data.name || !data.phone) {
+        alert('Name and Phone are required');
+        return;
+    }
+
+    try {
+        const token = localStorage.getItem('token');
+        const res = await fetch(`${API_BASE_URL}/users/${id || 'new'}`, {
+            method: id ? 'PUT' : 'POST',
+            headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        });
+
+        if (!res.ok) throw new Error(await res.text());
+        
+        closeCustomerModal();
+        loadCustomers();
+        alert(id ? 'Customer updated' : 'Customer added');
+    } catch (e) {
+        console.error(e);
+        alert('Error saving customer: ' + e.message);
+    }
+}
+
+async function deleteCustomer(customerId) {
+    if (!confirm('Delete this customer?')) return;
+
+    try {
+        const token = localStorage.getItem('token');
+        const res = await fetch(`${API_BASE_URL}/users/${customerId}`, {
+            method: 'DELETE',
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        if (!res.ok) throw new Error(await res.text());
+        
+        loadCustomers();
+        alert('Customer deleted');
+    } catch (e) {
+        console.error(e);
+        alert('Error deleting customer');
+    }
+}

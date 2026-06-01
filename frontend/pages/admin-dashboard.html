@@ -29,6 +29,9 @@
                 <a href="#" class="admin-menu-item" onclick="showAdminSection('users', event)">
                     <i class="fas fa-users"></i><span data-i18n="admin.menu.users">Manage Users</span>
                 </a>
+                <a href="#" class="admin-menu-item" onclick="showAdminSection('customers', event)">
+                    <i class="fas fa-id-card"></i><span data-i18n="admin.menu.customers">Manage Customers</span>
+                </a>
                 <a href="#" class="admin-menu-item" onclick="showAdminSection('sales', event)">
                     <i class="fas fa-shopping-cart"></i><span data-i18n="admin.menu.sales">Sales Reports</span>
                 </a>
@@ -184,6 +187,26 @@
                     <h3 class="section-title"><i class="fas fa-users"></i> <span data-i18n="admin.users.title">إدارة المستخدمين</span></h3>
                 </div>
                 <div id="usersList" class="users-table"></div>
+            </section>
+
+            <!-- ── Manage Customers ──────────────────────── -->
+            <section id="customers" class="admin-section hidden">
+                <div class="section-header">
+                    <h3 class="section-title"><i class="fas fa-id-card"></i> <span data-i18n="admin.customers.title">Manage Customers</span></h3>
+                    <button class="btn btn-primary" onclick="openCustomerModal()">
+                        <i class="fas fa-plus"></i> <span data-i18n="admin.customers.add">Add Customer</span>
+                    </button>
+                </div>
+
+                <!-- Search/Filter -->
+                <div style="background:var(--card-bg);padding:16px;border-radius:var(--radius);margin-bottom:16px;display:flex;gap:10px;flex-wrap:wrap">
+                    <input type="text" id="customerSearchInput" placeholder="Search by name, phone, or ID..." style="flex:1;min-width:200px;padding:8px 12px;border:1px solid var(--border);border-radius:6px" oninput="filterCustomers()">
+                    <select id="customerFilterCity" style="padding:8px 12px;border:1px solid var(--border);border-radius:6px" onchange="filterCustomers()">
+                        <option value="">All Cities</option>
+                    </select>
+                </div>
+
+                <div id="customersList" class="customers-table"></div>
             </section>
 
             <section id="sales" class="admin-section hidden">
@@ -728,6 +751,42 @@
             <div class="modal-footer">
                 <button class="btn btn-primary" onclick="saveAdminEditUser()"><i class="fas fa-save"></i> <span data-i18n="inv.save">Save</span></button>
                 <button class="btn btn-secondary" onclick="closeAdminEditUser()"><i class="fas fa-times"></i> <span data-i18n="admin.cars.cancel">Cancel</span></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Customer Modal ──────────────────────────────── -->
+    <div id="customerModal" class="modal-overlay hidden" onclick="if(event.target===this)closeCustomerModal()">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 class="modal-title"><i class="fas fa-user-plus"></i> <span data-i18n="admin.customers.add">Add Customer</span></h3>
+                <button class="modal-close" onclick="closeCustomerModal()"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="customerId">
+                <div class="form-row">
+                    <div class="form-group"><label data-i18n="admin.customers.name">Full Name</label><input type="text" id="customerName" required></div>
+                    <div class="form-group"><label data-i18n="admin.users.email">Email</label><input type="email" id="customerEmail"></div>
+                    <div class="form-group"><label data-i18n="admin.users.phone">Phone</label><input type="tel" id="customerPhone" required></div>
+                    <div class="form-group"><label data-i18n="admin.users.city">City</label><input type="text" id="customerCity"></div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group"><label data-i18n="admin.customers.idType">ID Type</label>
+                        <select id="customerIdType">
+                            <option value="national" data-i18n="admin.customers.national">National ID</option>
+                            <option value="passport" data-i18n="admin.customers.passport">Passport</option>
+                            <option value="license" data-i18n="admin.customers.license">Driver License</option>
+                        </select>
+                    </div>
+                    <div class="form-group"><label data-i18n="admin.customers.idNumber">ID Number</label><input type="text" id="customerIdNumber"></div>
+                    <div class="form-group"><label data-i18n="admin.customers.dob">Date of Birth</label><input type="date" id="customerDob"></div>
+                    <div class="form-group"><label data-i18n="admin.customers.address">Address</label><input type="text" id="customerAddress"></div>
+                </div>
+                <div class="form-group"><label data-i18n="admin.customers.notes">Notes</label><textarea id="customerNotes" rows="2" style="width:100%;padding:8px;border:1px solid var(--border);border-radius:6px;resize:vertical"></textarea></div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" onclick="saveCustomer()"><i class="fas fa-save"></i> <span data-i18n="inv.save">Save</span></button>
+                <button class="btn btn-secondary" onclick="closeCustomerModal()"><i class="fas fa-times"></i> <span data-i18n="admin.cars.cancel">Cancel</span></button>
             </div>
         </div>
     </div>
