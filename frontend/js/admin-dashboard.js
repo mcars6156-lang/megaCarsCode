@@ -1068,7 +1068,7 @@ function showSettingsTab(name, e) {
     document.querySelectorAll('.settings-tab').forEach(t => t.classList.remove('active'));
     document.querySelectorAll('.settings-tab-content').forEach(c => c.classList.add('hidden'));
     e?.currentTarget?.classList.add('active');
-    const map = { company:'settingsCompany', appearance:'settingsAppearance', typography:'settingsTypography', layout:'settingsLayout', finance:'settingsFinance' };
+    const map = { company:'settingsCompany', appearance:'settingsAppearance', typography:'settingsTypography', layout:'settingsLayout', finance:'settingsFinance', users:'settingsUsers' };
     document.getElementById(map[name])?.classList.remove('hidden');
 }
 

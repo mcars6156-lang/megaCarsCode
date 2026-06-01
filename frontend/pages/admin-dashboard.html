@@ -26,9 +26,6 @@
                 <a href="#" class="admin-menu-item" onclick="showAdminSection('cars', event)">
                     <i class="fas fa-car"></i><span data-i18n="admin.menu.cars">Manage Cars</span>
                 </a>
-                <a href="#" class="admin-menu-item" onclick="showAdminSection('users', event)">
-                    <i class="fas fa-users"></i><span data-i18n="admin.menu.users">Manage Users</span>
-                </a>
                 <a href="#" class="admin-menu-item" onclick="showAdminSection('customers', event)">
                     <i class="fas fa-id-card"></i><span data-i18n="admin.menu.customers">Manage Customers</span>
                 </a>
@@ -516,6 +513,7 @@
                     <button class="settings-tab" onclick="showSettingsTab('typography', event)"><i class="fas fa-text-height"></i> <span data-i18n="settings.tab.typography">Typography</span></button>
                     <button class="settings-tab" onclick="showSettingsTab('layout', event)"><i class="fas fa-th-large"></i> <span data-i18n="settings.tab.layout">Layout</span></button>
                     <button class="settings-tab" onclick="showSettingsTab('finance', event)"><i class="fas fa-coins"></i> <span data-i18n="settings.tab.finance">Finance</span></button>
+                    <button class="settings-tab" onclick="showSettingsTab('users', event)"><i class="fas fa-users"></i> <span data-i18n="admin.menu.users">System Users</span></button>
                 </div>
 
                 <!-- Company Tab -->
@@ -714,6 +712,18 @@
                                 <input type="checkbox" id="setPaymentScheduleManager" checked style="width:20px;height:20px;cursor:pointer">
                             </div>
                         </div>
+                    </div>
+                </div>
+
+                <!-- System Users Tab -->
+                <div class="settings-tab-content hidden" id="settingsUsers">
+                    <div class="settings-card">
+                        <h4 class="settings-card-title"><i class="fas fa-users"></i> <span data-i18n="admin.users.title">System Users</span></h4>
+                        <p style="color:var(--text-muted);margin-bottom:16px;font-size:13px" data-i18n="admin.users.description">Manage staff and admin accounts who can access the system</p>
+                        <button class="btn btn-primary" onclick="showAdminSection('users', event)" style="margin-bottom:16px">
+                            <i class="fas fa-arrow-right"></i> <span data-i18n="admin.users.manage">Manage Users</span>
+                        </button>
+                        <p style="color:var(--text-muted);font-size:12px">Click the button above to manage system users (admins and staff)</p>
                     </div>
                 </div>
             </section>
