@@ -739,3 +739,18 @@ async function fillContractFromCar(carId) {
         updateContractRemaining();
     } catch (e) { console.error(e); }
 }
+
+// ── Mobile menu ───────────────────────────────────────────
+
+function toggleMobileMenu() {
+    document.getElementById('sidebar')?.classList.toggle('open');
+    document.querySelector('.sidebar-backdrop')?.classList.toggle('active');
+}
+
+document.addEventListener('click', (e) => {
+    if (window.innerWidth > 767) return;
+    if (e.target.closest('.menu-item')) {
+        const sidebar = document.getElementById('sidebar');
+        if (sidebar?.classList.contains('open')) toggleMobileMenu();
+    }
+});

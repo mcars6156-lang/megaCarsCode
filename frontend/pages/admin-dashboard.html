@@ -9,8 +9,12 @@
     <script src="../js/i18n.js"></script>
 </head>
 <body>
+    <button class="mobile-menu-btn" onclick="toggleMobileMenu()" aria-label="Menu">
+        <i class="fas fa-bars"></i>
+    </button>
+    <div class="sidebar-backdrop" onclick="toggleMobileMenu()"></div>
     <div class="admin-container">
-        <aside class="admin-sidebar">
+        <aside class="admin-sidebar" id="adminSidebar">
             <div class="sidebar-header">
                 <img src="../images/logo-small.png" alt="Mega Cars" class="sidebar-logo">
                 <span data-i18n="admin.roleLabel" class="admin-role-label">Admin Panel</span>
@@ -36,6 +40,9 @@
                 </a>
                 <a href="#" class="admin-menu-item" onclick="showAdminSection('contracts', event)">
                     <i class="fas fa-file-contract"></i><span data-i18n="contract.title">Contracts</span>
+                </a>
+                <a href="#" class="admin-menu-item" onclick="showAdminSection('reports', event)">
+                    <i class="fas fa-file-invoice"></i><span data-i18n="reports.title">Reports Center</span>
                 </a>
                 <a href="#" class="admin-menu-item" onclick="showAdminSection('settings', event)">
                     <i class="fas fa-cog"></i><span data-i18n="admin.menu.settings">Settings</span>
@@ -343,6 +350,110 @@
                         </button>
                     </div>
                 </div>
+            </section>
+
+            <!-- ── Reports Center ─────────────────────────── -->
+            <section id="reports" class="admin-section hidden">
+                <div class="section-header">
+                    <h3 class="section-title"><i class="fas fa-file-invoice"></i> <span data-i18n="reports.title">Reports Center</span></h3>
+                </div>
+
+                <!-- Date range filter -->
+                <div class="report-filter-bar">
+                    <label data-i18n="reports.dateFrom">From:</label>
+                    <input type="date" id="reportDateFrom">
+                    <label data-i18n="reports.dateTo">To:</label>
+                    <input type="date" id="reportDateTo">
+                    <button class="btn btn-secondary" onclick="clearReportFilter()">
+                        <i class="fas fa-times"></i> <span data-i18n="reports.clearFilter">Clear</span>
+                    </button>
+                </div>
+
+                <!-- Report Cards -->
+                <div class="reports-grid">
+                    <!-- Inventory Report -->
+                    <div class="report-card">
+                        <div class="report-card-header" style="background:linear-gradient(135deg,#3b82f6,#1e40af)">
+                            <i class="fas fa-warehouse"></i>
+                            <h3 data-i18n="reports.inventory">Inventory Report</h3>
+                        </div>
+                        <p data-i18n="reports.inventoryDesc">All cars with cost, sale price, profit margin, and status.</p>
+                        <div class="report-actions">
+                            <button class="btn btn-primary btn-small" onclick="viewInventoryReport()">
+                                <i class="fas fa-eye"></i> <span data-i18n="reports.view">View</span>
+                            </button>
+                            <button class="btn btn-success btn-small" onclick="printInventoryReport()">
+                                <i class="fas fa-print"></i> <span data-i18n="reports.print">Print PDF</span>
+                            </button>
+                            <button class="btn btn-secondary btn-small" onclick="exportInventoryCSV()">
+                                <i class="fas fa-file-csv"></i> CSV
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Sales Report -->
+                    <div class="report-card">
+                        <div class="report-card-header" style="background:linear-gradient(135deg,#10b981,#047857)">
+                            <i class="fas fa-shopping-cart"></i>
+                            <h3 data-i18n="reports.sales">Sales Report</h3>
+                        </div>
+                        <p data-i18n="reports.salesDesc">Cash vs installment sales with buyer details and profit per deal.</p>
+                        <div class="report-actions">
+                            <button class="btn btn-primary btn-small" onclick="viewSalesReport()">
+                                <i class="fas fa-eye"></i> <span data-i18n="reports.view">View</span>
+                            </button>
+                            <button class="btn btn-success btn-small" onclick="printSalesReport()">
+                                <i class="fas fa-print"></i> <span data-i18n="reports.print">Print PDF</span>
+                            </button>
+                            <button class="btn btn-secondary btn-small" onclick="exportSalesCSV()">
+                                <i class="fas fa-file-csv"></i> CSV
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Expenses Report -->
+                    <div class="report-card">
+                        <div class="report-card-header" style="background:linear-gradient(135deg,#ef4444,#991b1b)">
+                            <i class="fas fa-receipt"></i>
+                            <h3 data-i18n="reports.expenses">Expenses Report</h3>
+                        </div>
+                        <p data-i18n="reports.expensesDesc">All expenses grouped by category, totals in IQD and USD.</p>
+                        <div class="report-actions">
+                            <button class="btn btn-primary btn-small" onclick="viewExpensesReport()">
+                                <i class="fas fa-eye"></i> <span data-i18n="reports.view">View</span>
+                            </button>
+                            <button class="btn btn-success btn-small" onclick="printExpensesReport()">
+                                <i class="fas fa-print"></i> <span data-i18n="reports.print">Print PDF</span>
+                            </button>
+                            <button class="btn btn-secondary btn-small" onclick="exportExpensesCSV()">
+                                <i class="fas fa-file-csv"></i> CSV
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Customers Report -->
+                    <div class="report-card">
+                        <div class="report-card-header" style="background:linear-gradient(135deg,#8b5cf6,#6d28d9)">
+                            <i class="fas fa-users"></i>
+                            <h3 data-i18n="reports.customers">Customers Report</h3>
+                        </div>
+                        <p data-i18n="reports.customersDesc">All customers with purchase history and outstanding balances.</p>
+                        <div class="report-actions">
+                            <button class="btn btn-primary btn-small" onclick="viewCustomersReport()">
+                                <i class="fas fa-eye"></i> <span data-i18n="reports.view">View</span>
+                            </button>
+                            <button class="btn btn-success btn-small" onclick="printCustomersReport()">
+                                <i class="fas fa-print"></i> <span data-i18n="reports.print">Print PDF</span>
+                            </button>
+                            <button class="btn btn-secondary btn-small" onclick="exportCustomersCSV()">
+                                <i class="fas fa-file-csv"></i> CSV
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- On-screen report viewer -->
+                <div id="reportViewer" class="report-viewer hidden"></div>
             </section>
 
             <section id="settings" class="admin-section hidden">

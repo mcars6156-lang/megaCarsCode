@@ -26,6 +26,7 @@ function showAdminSection(sectionId, e) {
         'expenses':   t('admin.menu.expenses'),
         'calculator': t('calc.title'),
         'contracts':  t('contract.title'),
+        'reports':    t('reports.title'),
         'settings':   t('admin.section.settings')
     };
     document.getElementById('adminPageTitle').textContent = titles[sectionId] || t('admin.section.dashboard');
@@ -1160,3 +1161,401 @@ function resetCustomization() {
 
 // Load saved settings on page load
 document.addEventListener('DOMContentLoaded', loadSavedSettings);
+
+// ── Reports Center ────────────────────────────────────────
+
+function clearReportFilter() {
+    document.getElementById('reportDateFrom').value = '';
+    document.getElementById('reportDateTo').value = '';
+}
+
+function getDateRange() {
+    return {
+        from: document.getElementById('reportDateFrom')?.value || '',
+        to:   document.getElementById('reportDateTo')?.value   || ''
+    };
+}
+
+function withinRange(dateStr, range) {
+    if (!range.from && !range.to) return true;
+    const d = new Date(dateStr).getTime();
+    if (range.from && d < new Date(range.from).getTime()) return false;
+    if (range.to   && d > new Date(range.to).getTime() + 86400000) return false;
+    return true;
+}
+
+async function fetchAllCars() {
+    const token = localStorage.getItem('token');
+    const res = await fetch(`${API_BASE_URL}/cars`, { headers: { 'Authorization': `Bearer ${token}` } });
+    return await res.json();
+}
+async function fetchAllSales() {
+    const token = localStorage.getItem('token');
+    const res = await fetch(`${API_BASE_URL}/admin/reports/sales`, { headers: { 'Authorization': `Bearer ${token}` } });
+    return await res.json();
+}
+async function fetchAllExpenses() {
+    const token = localStorage.getItem('token');
+    const res = await fetch(`${API_BASE_URL}/expenses`, { headers: { 'Authorization': `Bearer ${token}` } });
+    return await res.json();
+}
+async function fetchAllUsers() {
+    const token = localStorage.getItem('token');
+    const res = await fetch(`${API_BASE_URL}/users`, { headers: { 'Authorization': `Bearer ${token}` } });
+    return await res.json();
+}
+
+// ── Inventory Report ──
+
+async function viewInventoryReport() {
+    const cars = await fetchAllCars();
+    const totalCost  = cars.reduce((s, c) => s + (c.costPrice || 0), 0);
+    const totalValue = cars.reduce((s, c) => s + (c.price || 0), 0);
+    const available  = cars.filter(c => c.status === 'available').length;
+    const sold       = cars.filter(c => c.status === 'sold').length;
+
+    document.getElementById('reportViewer').classList.remove('hidden');
+    document.getElementById('reportViewer').innerHTML = `
+        <h3 class="report-section-title">${t('reports.inventory')}</h3>
+        <div class="report-summary">
+            <div class="report-stat"><div class="stat-icon blue"><i class="fas fa-car"></i></div><div class="stat-info"><h3>${t('admin.stat.cars')}</h3><p>${cars.length}</p></div></div>
+            <div class="report-stat"><div class="stat-icon green"><i class="fas fa-check"></i></div><div class="stat-info"><h3>${t('dyn.available')}</h3><p>${available}</p></div></div>
+            <div class="report-stat"><div class="stat-icon orange"><i class="fas fa-shopping-cart"></i></div><div class="stat-info"><h3>${t('dyn.status.sold')}</h3><p>${sold}</p></div></div>
+            <div class="report-stat"><div class="stat-icon amber"><i class="fas fa-dollar-sign"></i></div><div class="stat-info"><h3>${t('report.totalCost')}</h3><p>$${totalCost.toLocaleString()}</p></div></div>
+            <div class="report-stat"><div class="stat-icon red"><i class="fas fa-tag"></i></div><div class="stat-info"><h3>${t('report.revenue')}</h3><p>$${totalValue.toLocaleString()}</p></div></div>
+        </div>
+        <table><thead><tr>
+            <th>${t('admin.cars.brand')}</th><th>${t('admin.cars.model')}</th><th>${t('admin.cars.year')}</th>
+            <th>${t('report.totalCost')}</th><th>${t('admin.cars.price')}</th>
+            <th>${t('report.netProfit')}</th><th>${t('admin.cars.status')}</th>
+        </tr></thead><tbody>${cars.map(c => {
+            const profit = (c.price || 0) - (c.costPrice || 0);
+            return `<tr>
+                <td><strong>${c.brand}</strong></td><td>${c.model}</td><td>${c.year}</td>
+                <td>$${(c.costPrice||0).toLocaleString()}</td>
+                <td><strong>$${(c.price||0).toLocaleString()}</strong></td>
+                <td style="color:var(--${profit>=0?'success':'danger'})"><strong>$${profit.toLocaleString()}</strong></td>
+                <td>${statusBadge(c.status)}</td>
+            </tr>`;
+        }).join('')}</tbody></table>`;
+}
+
+async function printInventoryReport() {
+    const cars = await fetchAllCars();
+    const totalCost  = cars.reduce((s, c) => s + (c.costPrice || 0), 0);
+    const totalValue = cars.reduce((s, c) => s + (c.price || 0), 0);
+    openPrintWindow('Inventory Report — تقرير المخزون', `
+        <div class="kpi-row">
+            <div class="kpi"><strong>${cars.length}</strong><span>Total Cars</span></div>
+            <div class="kpi"><strong>${cars.filter(c=>c.status==='available').length}</strong><span>Available</span></div>
+            <div class="kpi"><strong>${cars.filter(c=>c.status==='sold').length}</strong><span>Sold</span></div>
+            <div class="kpi"><strong>$${totalCost.toLocaleString()}</strong><span>Total Cost</span></div>
+            <div class="kpi"><strong>$${totalValue.toLocaleString()}</strong><span>Total Value</span></div>
+        </div>
+        <table>
+            <thead><tr><th>#</th><th>Brand</th><th>Model</th><th>Year</th><th>Cost ($)</th><th>Sale ($)</th><th>Profit ($)</th><th>Status</th></tr></thead>
+            <tbody>${cars.map((c,i) => {
+                const profit = (c.price||0) - (c.costPrice||0);
+                return `<tr><td>${i+1}</td><td><strong>${c.brand}</strong></td><td>${c.model}</td><td>${c.year}</td><td>${(c.costPrice||0).toLocaleString()}</td><td>${(c.price||0).toLocaleString()}</td><td>${profit.toLocaleString()}</td><td>${c.status}</td></tr>`;
+            }).join('')}</tbody>
+        </table>`);
+}
+
+async function exportInventoryCSV() {
+    const cars = await fetchAllCars();
+    const headers = ['Brand','Model','Year','Color','Fuel','Transmission','Mileage','Cost Price ($)','Sale Price ($)','Profit ($)','VIN','Status'];
+    const rows = cars.map(c => {
+        const profit = (c.price||0) - (c.costPrice||0);
+        return [c.brand, c.model, c.year, c.color||'', c.fuel||'', c.transmission||'', c.mileage||0, c.costPrice||0, c.price||0, profit, c.vin||'', c.status||''];
+    });
+    exportToCSV([headers, ...rows], `inventory-${new Date().toISOString().split('T')[0]}.csv`);
+}
+
+// ── Sales Report ──
+
+async function viewSalesReport() {
+    const sales = await fetchAllSales();
+    const range = getDateRange();
+    const filtered = sales.filter(s => withinRange(s.saleDate, range));
+    const cashTypes = ['cash','check','bank_transfer'];
+    const cash = filtered.filter(s => cashTypes.includes(s.paymentMethod));
+    const inst = filtered.filter(s => s.paymentMethod === 'installment');
+    const cashRev = cash.reduce((sum,s) => sum + (s.salePrice||0), 0);
+    const instRev = inst.reduce((sum,s) => sum + (s.salePrice||0), 0);
+    const totalRev = cashRev + instRev;
+    const totalCost = filtered.reduce((sum,s) => sum + (s.car?.costPrice||0), 0);
+    const profit = totalRev - totalCost;
+    _salesData = filtered;
+
+    document.getElementById('reportViewer').classList.remove('hidden');
+    document.getElementById('reportViewer').innerHTML = `
+        <h3 class="report-section-title">${t('reports.sales')} ${range.from||range.to ? `(${range.from||'…'} → ${range.to||'…'})` : ''}</h3>
+        <div class="report-summary">
+            <div class="report-stat"><div class="stat-icon green"><i class="fas fa-money-bill-wave"></i></div><div class="stat-info"><h3>${t('report.cashTotal')}</h3><p>$${cashRev.toLocaleString()}</p><small>${cash.length} ${t('report.deals')}</small></div></div>
+            <div class="report-stat"><div class="stat-icon blue"><i class="fas fa-credit-card"></i></div><div class="stat-info"><h3>${t('report.installTotal')}</h3><p>$${instRev.toLocaleString()}</p><small>${inst.length} ${t('report.deals')}</small></div></div>
+            <div class="report-stat"><div class="stat-icon amber"><i class="fas fa-chart-line"></i></div><div class="stat-info"><h3>${t('report.revenue')}</h3><p>$${totalRev.toLocaleString()}</p></div></div>
+            <div class="report-stat"><div class="stat-icon ${profit>=0?'green':'red'}"><i class="fas fa-chart-bar"></i></div><div class="stat-info"><h3>${t('report.netProfit')}</h3><p>$${profit.toLocaleString()}</p></div></div>
+        </div>
+        <table><thead><tr>
+            <th>${t('admin.sales.date')}</th><th>${t('admin.sales.car')}</th>
+            <th>${t('admin.sales.buyer')}</th><th>${t('admin.sales.payment')}</th>
+            <th>${t('admin.sales.price')}</th><th>${t('report.netProfit')}</th>
+        </tr></thead><tbody>${filtered.map(s => {
+            const p = (s.salePrice||0) - (s.car?.costPrice||0);
+            return `<tr>
+                <td>${new Date(s.saleDate).toLocaleDateString()}</td>
+                <td><strong>${s.car?.brand||''} ${s.car?.model||''}</strong></td>
+                <td>${s.buyer?.name||'–'}</td>
+                <td>${s.paymentMethod||'–'}</td>
+                <td><strong>$${(s.salePrice||0).toLocaleString()}</strong></td>
+                <td style="color:var(--${p>=0?'success':'danger'})">$${p.toLocaleString()}</td>
+            </tr>`;
+        }).join('')}</tbody></table>`;
+}
+
+async function printSalesReport() {
+    const sales = await fetchAllSales();
+    const range = getDateRange();
+    const filtered = sales.filter(s => withinRange(s.saleDate, range));
+    const cashTypes = ['cash','check','bank_transfer'];
+    const cashRev = filtered.filter(s => cashTypes.includes(s.paymentMethod)).reduce((sum,s) => sum + (s.salePrice||0), 0);
+    const instRev = filtered.filter(s => s.paymentMethod === 'installment').reduce((sum,s) => sum + (s.salePrice||0), 0);
+    const totalRev = cashRev + instRev;
+    const totalCost = filtered.reduce((sum,s) => sum + (s.car?.costPrice||0), 0);
+    const profit = totalRev - totalCost;
+    const period = range.from||range.to ? `${range.from||'all'} → ${range.to||'now'}` : 'All Time';
+
+    openPrintWindow(`Sales Report — تقرير المبيعات (${period})`, `
+        <div class="kpi-row">
+            <div class="kpi"><strong>$${cashRev.toLocaleString()}</strong><span>Cash Sales</span></div>
+            <div class="kpi"><strong>$${instRev.toLocaleString()}</strong><span>Installment Sales</span></div>
+            <div class="kpi"><strong>$${totalRev.toLocaleString()}</strong><span>Total Revenue</span></div>
+            <div class="kpi"><strong>$${totalCost.toLocaleString()}</strong><span>Total Cost</span></div>
+            <div class="kpi"><strong style="color:${profit>=0?'#16a34a':'#dc2626'}">$${profit.toLocaleString()}</strong><span>Net Profit</span></div>
+        </div>
+        <table>
+            <thead><tr><th>#</th><th>Date</th><th>Car</th><th>Buyer</th><th>Payment</th><th>Cost ($)</th><th>Sale ($)</th><th>Profit ($)</th></tr></thead>
+            <tbody>${filtered.map((s,i) => {
+                const cost = s.car?.costPrice||0;
+                const p = (s.salePrice||0) - cost;
+                return `<tr><td>${i+1}</td><td>${new Date(s.saleDate).toLocaleDateString()}</td><td>${s.car?.brand||''} ${s.car?.model||''}</td><td>${s.buyer?.name||'–'}</td><td>${s.paymentMethod||''}</td><td>${cost.toLocaleString()}</td><td>${(s.salePrice||0).toLocaleString()}</td><td>${p.toLocaleString()}</td></tr>`;
+            }).join('')}</tbody>
+        </table>`);
+}
+
+// ── Expenses Report ──
+
+async function viewExpensesReport() {
+    const exp = await fetchAllExpenses();
+    const range = getDateRange();
+    const filtered = exp.filter(e => withinRange(e.date, range));
+    const totalIQD = filtered.reduce((s,e) => s + (e.amountIQD||0), 0);
+    const totalUSD = filtered.reduce((s,e) => s + (e.amountUSD||0), 0);
+    _expensesData = filtered;
+
+    // Group by category
+    const byCategory = {};
+    filtered.forEach(e => {
+        byCategory[e.category] = byCategory[e.category] || { count: 0, usd: 0 };
+        byCategory[e.category].count++;
+        byCategory[e.category].usd += (e.amountUSD || 0);
+    });
+
+    document.getElementById('reportViewer').classList.remove('hidden');
+    document.getElementById('reportViewer').innerHTML = `
+        <h3 class="report-section-title">${t('reports.expenses')} ${range.from||range.to ? `(${range.from||'…'} → ${range.to||'…'})` : ''}</h3>
+        <div class="report-summary">
+            <div class="report-stat"><div class="stat-icon red"><i class="fas fa-receipt"></i></div><div class="stat-info"><h3>${t('exp.totalUSD')}</h3><p>$${totalUSD.toLocaleString()}</p></div></div>
+            <div class="report-stat"><div class="stat-icon orange"><i class="fas fa-money-bill"></i></div><div class="stat-info"><h3>${t('exp.totalIQD')}</h3><p>${totalIQD.toLocaleString()}</p></div></div>
+            <div class="report-stat"><div class="stat-icon blue"><i class="fas fa-list"></i></div><div class="stat-info"><h3>${t('exp.count')}</h3><p>${filtered.length}</p></div></div>
+        </div>
+        <h4 style="margin:20px 0 10px">${t('reports.byCategory')}</h4>
+        <table><thead><tr><th>${t('exp.category')}</th><th>${t('exp.count')}</th><th>${t('exp.totalUSD')}</th></tr></thead>
+            <tbody>${Object.entries(byCategory).map(([cat, data]) => `
+                <tr><td><strong>${cat}</strong></td><td>${data.count}</td><td>$${data.usd.toLocaleString()}</td></tr>`).join('')}
+            </tbody>
+        </table>
+        <h4 style="margin:20px 0 10px">${t('reports.allExpenses')}</h4>
+        <table><thead><tr>
+            <th>${t('exp.date')}</th><th>${t('exp.desc')}</th><th>${t('exp.category')}</th>
+            <th>${t('exp.amountIQD')}</th><th>${t('exp.amountUSD')}</th>
+        </tr></thead><tbody>${filtered.map(e => `
+            <tr>
+                <td>${new Date(e.date).toLocaleDateString()}</td>
+                <td>${e.description}</td>
+                <td>${e.category}</td>
+                <td>${(e.amountIQD||0).toLocaleString()}</td>
+                <td><strong>$${(e.amountUSD||0).toLocaleString()}</strong></td>
+            </tr>`).join('')}</tbody></table>`;
+}
+
+async function printExpensesReport() {
+    const exp = await fetchAllExpenses();
+    const range = getDateRange();
+    const filtered = exp.filter(e => withinRange(e.date, range));
+    const totalIQD = filtered.reduce((s,e) => s + (e.amountIQD||0), 0);
+    const totalUSD = filtered.reduce((s,e) => s + (e.amountUSD||0), 0);
+    const byCategory = {};
+    filtered.forEach(e => {
+        byCategory[e.category] = (byCategory[e.category] || 0) + (e.amountUSD || 0);
+    });
+    const period = range.from||range.to ? `${range.from||'all'} → ${range.to||'now'}` : 'All Time';
+
+    openPrintWindow(`Expenses Report — تقرير المصاريف (${period})`, `
+        <div class="kpi-row">
+            <div class="kpi"><strong>${filtered.length}</strong><span>Entries</span></div>
+            <div class="kpi"><strong>${totalIQD.toLocaleString()} IQD</strong><span>Total IQD</span></div>
+            <div class="kpi"><strong>$${totalUSD.toLocaleString()}</strong><span>Total USD</span></div>
+        </div>
+        <h3 style="margin:14px 0 8px">By Category</h3>
+        <table>
+            <thead><tr><th>Category</th><th>Amount ($)</th></tr></thead>
+            <tbody>${Object.entries(byCategory).map(([cat, amt]) => `<tr><td><strong>${cat}</strong></td><td>${amt.toLocaleString()}</td></tr>`).join('')}</tbody>
+        </table>
+        <h3 style="margin:14px 0 8px">All Expenses</h3>
+        <table>
+            <thead><tr><th>#</th><th>Date</th><th>Description</th><th>Category</th><th>IQD</th><th>USD</th><th>Payment</th></tr></thead>
+            <tbody>${filtered.map((e,i) => `<tr><td>${i+1}</td><td>${new Date(e.date).toLocaleDateString()}</td><td>${e.description}</td><td>${e.category}</td><td>${(e.amountIQD||0).toLocaleString()}</td><td>${(e.amountUSD||0).toLocaleString()}</td><td>${e.paymentMethod||''}</td></tr>`).join('')}</tbody>
+        </table>`);
+}
+
+// ── Customers Report ──
+
+async function viewCustomersReport() {
+    const [users, sales] = await Promise.all([fetchAllUsers(), fetchAllSales()]);
+    const customers = users.filter(u => u.role !== 'admin');
+    const purchasesByUser = {};
+    sales.forEach(s => {
+        const id = s.buyer?._id;
+        if (!id) return;
+        purchasesByUser[id] = purchasesByUser[id] || { count: 0, total: 0 };
+        purchasesByUser[id].count++;
+        purchasesByUser[id].total += (s.salePrice || 0);
+    });
+
+    document.getElementById('reportViewer').classList.remove('hidden');
+    document.getElementById('reportViewer').innerHTML = `
+        <h3 class="report-section-title">${t('reports.customers')}</h3>
+        <div class="report-summary">
+            <div class="report-stat"><div class="stat-icon blue"><i class="fas fa-users"></i></div><div class="stat-info"><h3>${t('admin.stat.users')}</h3><p>${customers.length}</p></div></div>
+            <div class="report-stat"><div class="stat-icon green"><i class="fas fa-shopping-bag"></i></div><div class="stat-info"><h3>${t('admin.stat.sales')}</h3><p>${sales.length}</p></div></div>
+        </div>
+        <table><thead><tr>
+            <th>${t('admin.users.name')}</th><th>${t('admin.users.phone')}</th>
+            <th>${t('admin.users.city')}</th><th>Purchases</th><th>Total Spent</th>
+        </tr></thead><tbody>${customers.map(u => {
+            const stats = purchasesByUser[u._id] || { count: 0, total: 0 };
+            return `<tr>
+                <td><strong>${u.name}</strong></td>
+                <td>${u.phone||'–'}</td>
+                <td>${u.city||'–'}</td>
+                <td>${stats.count}</td>
+                <td><strong>$${stats.total.toLocaleString()}</strong></td>
+            </tr>`;
+        }).join('')}</tbody></table>`;
+}
+
+async function printCustomersReport() {
+    const [users, sales] = await Promise.all([fetchAllUsers(), fetchAllSales()]);
+    const customers = users.filter(u => u.role !== 'admin');
+    const purchasesByUser = {};
+    sales.forEach(s => {
+        const id = s.buyer?._id;
+        if (!id) return;
+        purchasesByUser[id] = purchasesByUser[id] || { count: 0, total: 0 };
+        purchasesByUser[id].count++;
+        purchasesByUser[id].total += (s.salePrice || 0);
+    });
+
+    openPrintWindow('Customers Report — تقرير العملاء', `
+        <div class="kpi-row">
+            <div class="kpi"><strong>${customers.length}</strong><span>Total Customers</span></div>
+            <div class="kpi"><strong>${sales.length}</strong><span>Total Sales</span></div>
+        </div>
+        <table>
+            <thead><tr><th>#</th><th>Name</th><th>Email</th><th>Phone</th><th>City</th><th>Purchases</th><th>Total Spent ($)</th></tr></thead>
+            <tbody>${customers.map((u,i) => {
+                const stats = purchasesByUser[u._id] || { count: 0, total: 0 };
+                return `<tr><td>${i+1}</td><td><strong>${u.name}</strong></td><td>${u.email||''}</td><td>${u.phone||''}</td><td>${u.city||''}</td><td>${stats.count}</td><td>${stats.total.toLocaleString()}</td></tr>`;
+            }).join('')}</tbody>
+        </table>`);
+}
+
+async function exportCustomersCSV() {
+    const [users, sales] = await Promise.all([fetchAllUsers(), fetchAllSales()]);
+    const customers = users.filter(u => u.role !== 'admin');
+    const purchasesByUser = {};
+    sales.forEach(s => {
+        const id = s.buyer?._id;
+        if (!id) return;
+        purchasesByUser[id] = purchasesByUser[id] || { count: 0, total: 0 };
+        purchasesByUser[id].count++;
+        purchasesByUser[id].total += (s.salePrice || 0);
+    });
+    const headers = ['Name','Email','Phone','City','Address','Role','Purchases','Total Spent ($)'];
+    const rows = customers.map(u => {
+        const stats = purchasesByUser[u._id] || { count: 0, total: 0 };
+        return [u.name, u.email||'', u.phone||'', u.city||'', u.address||'', u.role, stats.count, stats.total];
+    });
+    exportToCSV([headers, ...rows], `customers-${new Date().toISOString().split('T')[0]}.csv`);
+}
+
+// ── Shared Print Window ──
+
+function openPrintWindow(title, body) {
+    const lang = getLang();
+    const dir = (lang === 'ar' || lang === 'ku') ? 'rtl' : 'ltr';
+    const html = `<!DOCTYPE html>
+<html dir="${dir}" lang="${lang}"><head><meta charset="UTF-8"><title>${title}</title>
+<style>
+  *{box-sizing:border-box}
+  body{font-family:Arial,sans-serif;margin:0;padding:20px;font-size:12px}
+  .hdr{display:flex;justify-content:space-between;align-items:center;border-bottom:3px solid #333;padding-bottom:10px;margin-bottom:14px}
+  .hdr-side{font-size:11px;line-height:1.7}
+  .hdr-center{text-align:center}
+  .hdr-center img{width:55px;height:55px;border-radius:50%;object-fit:contain}
+  h2{margin:0 0 14px;text-align:center;border:2px solid #333;padding:8px;background:#f5f5f5}
+  h3{margin:14px 0 6px;color:#1e40af}
+  .kpi-row{display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap}
+  .kpi{flex:1;min-width:120px;background:#f8f9fa;border:1px solid #ccc;border-radius:6px;padding:10px;text-align:center}
+  .kpi strong{display:block;font-size:18px;color:#1e40af}
+  .kpi span{font-size:11px;color:#666}
+  table{width:100%;border-collapse:collapse;margin-bottom:10px}
+  th,td{border:1px solid #ccc;padding:5px 8px;text-align:${dir==='rtl'?'right':'left'};font-size:11px}
+  th{background:#1e293b;color:#fff;font-weight:bold}
+  tr:nth-child(even){background:#f8f9fa}
+  .footer{margin-top:25px;text-align:center;font-size:10px;color:#666;border-top:1px solid #ccc;padding-top:10px}
+  .pbtn{text-align:center;margin-bottom:15px}
+  .pbtn button{padding:10px 30px;background:#16a34a;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:14px}
+  @media print{.pbtn{display:none}}
+</style></head><body>
+<div class="pbtn"><button onclick="window.print()">🖨️ Print / طباعة</button></div>
+<div class="hdr">
+    <div class="hdr-side"><strong>Mega Cars Show</strong><br>For All Types of Cars Trading<br>📞 0751 121 1511</div>
+    <div class="hdr-center"><img src="/images/logo-small.png" alt=""><br><strong>Mega Cars</strong></div>
+    <div class="hdr-side" style="text-align:right"><strong>معرض ميگا كارس</strong><br>دهوك - معرض رقم 27<br>${new Date().toLocaleDateString()}</div>
+</div>
+<h2>${title}</h2>
+${body}
+<div class="footer">Generated on ${new Date().toLocaleString()} — Mega Cars Dealership Management System</div>
+</body></html>`;
+    const w = window.open('', '_blank', 'width=1000,height=800,scrollbars=yes');
+    w.document.write(html);
+    w.document.close();
+}
+
+// ── Mobile menu ───────────────────────────────────────────
+
+function toggleMobileMenu() {
+    document.getElementById('adminSidebar')?.classList.toggle('open');
+    document.querySelector('.sidebar-backdrop')?.classList.toggle('active');
+}
+
+// Close mobile menu when navigation item clicked
+document.addEventListener('click', (e) => {
+    if (window.innerWidth > 767) return;
+    if (e.target.closest('.admin-menu-item')) {
+        const sidebar = document.getElementById('adminSidebar');
+        if (sidebar?.classList.contains('open')) toggleMobileMenu();
+    }
+});

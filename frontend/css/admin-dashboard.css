@@ -527,3 +527,147 @@ input[type="range"]::-moz-range-thumb { width:18px; height:18px; border-radius:5
 .preview-box small { color:var(--text-muted); display:block; margin-bottom:8px; font-size:12px; }
 .preview-box h3 { margin:0 0 8px; }
 .preview-box p { margin:0; color:var(--text-muted); }
+
+/* ── Reports Center ──────────────────────────────────── */
+.report-filter-bar { display:flex; align-items:center; gap:12px; background:var(--card-bg); padding:14px 18px; border-radius:var(--radius); box-shadow:var(--shadow); margin-bottom:20px; flex-wrap:wrap; }
+.report-filter-bar label { font-weight:600; font-size:14px; }
+.report-filter-bar input[type="date"] { padding:8px 10px; border:1px solid var(--border); border-radius:6px; font-size:13px; }
+
+.reports-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(280px, 1fr)); gap:18px; margin-bottom:24px; }
+.report-card { background:var(--card-bg); border-radius:var(--radius); box-shadow:var(--shadow); overflow:hidden; transition:.2s; }
+.report-card:hover { transform:translateY(-3px); box-shadow:var(--shadow-lg); }
+.report-card-header { padding:24px; color:#fff; display:flex; align-items:center; gap:14px; }
+.report-card-header i { font-size:28px; }
+.report-card-header h3 { margin:0; font-size:17px; }
+.report-card p { padding:14px 18px 0; color:var(--text-muted); font-size:13px; margin:0 0 14px; }
+.report-actions { padding:0 18px 18px; display:flex; gap:8px; flex-wrap:wrap; }
+
+.report-viewer { background:var(--card-bg); border-radius:var(--radius); box-shadow:var(--shadow); padding:24px; }
+.report-viewer.hidden { display:none; }
+.report-section-title { margin:0 0 16px; padding-bottom:12px; border-bottom:2px solid var(--primary); font-size:18px; }
+.report-viewer table { width:100%; border-collapse:collapse; margin-top:10px; }
+.report-viewer th { background:var(--page-bg); padding:10px 12px; text-align:start; font-weight:600; font-size:13px; border-bottom:2px solid var(--border); }
+.report-viewer td { padding:10px 12px; border-bottom:1px solid var(--border); font-size:13px; }
+.report-viewer tr:hover td { background:var(--bg-secondary); }
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+/* RESPONSIVE — Mobile & Tablet                          */
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+
+/* Tablet: 768px–1023px */
+@media (max-width: 1023px) {
+  :root { --sidebar-w: 220px; }
+  .admin-content { padding: 14px; }
+  .dashboard-stats { grid-template-columns: repeat(2, 1fr); }
+  .form-row { grid-template-columns: repeat(2, 1fr); }
+  .report-summary { grid-template-columns: repeat(2, 1fr); }
+  .reports-grid { grid-template-columns: repeat(2, 1fr); }
+  .color-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+/* Mobile: ≤767px */
+@media (max-width: 767px) {
+  :root { --sidebar-w: 100%; }
+
+  /* Hamburger menu toggle */
+  .admin-sidebar {
+    position: fixed;
+    top: 0;
+    inset-inline-start: -100%;
+    width: 280px;
+    height: 100vh;
+    z-index: 999;
+    transition: inset-inline-start .3s;
+    box-shadow: 4px 0 20px rgba(0,0,0,.3);
+  }
+  .admin-sidebar.open { inset-inline-start: 0; }
+
+  .admin-content { margin-inline-start: 0 !important; padding: 12px; }
+
+  /* Floating mobile menu button */
+  .mobile-menu-btn {
+    display: flex !important;
+    position: fixed;
+    top: 14px;
+    inset-inline-start: 14px;
+    z-index: 1001;
+    width: 42px;
+    height: 42px;
+    border-radius: 10px;
+    background: var(--primary);
+    color: #fff;
+    border: none;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    box-shadow: 0 4px 12px rgba(0,0,0,.25);
+    cursor: pointer;
+  }
+
+  /* Top bar adjusts for hamburger */
+  .admin-top-bar { padding-inline-start: 60px; }
+
+  /* Backdrop when sidebar open */
+  .sidebar-backdrop {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,.5);
+    z-index: 998;
+    display: none;
+  }
+  .sidebar-backdrop.active { display: block; }
+
+  /* Stats: single column on mobile */
+  .dashboard-stats { grid-template-columns: 1fr; gap: 12px; }
+  .stat-box { padding: 14px; }
+
+  /* Forms: stack on mobile */
+  .form-row, .form-grid { grid-template-columns: 1fr !important; gap: 10px; }
+
+  /* Tables: horizontal scroll */
+  .admin-section table { display: block; overflow-x: auto; white-space: nowrap; }
+  .report-viewer { padding: 14px; overflow-x: auto; }
+
+  /* Reports / settings cards single column */
+  .reports-grid, .color-grid, .theme-presets { grid-template-columns: 1fr; }
+  .report-summary { grid-template-columns: 1fr; }
+  .expense-totals { flex-direction: column; }
+  .exp-total-item { width: 100%; }
+
+  /* Expense form: stack */
+  .expense-form { flex-direction: column; align-items: stretch; }
+  .expense-form input, .expense-form select { width: 100% !important; }
+
+  /* Section headers wrap */
+  .section-header { flex-direction: column; align-items: flex-start; gap: 10px; }
+
+  /* Settings tabs scroll horizontally */
+  .settings-tabs { overflow-x: auto; flex-wrap: nowrap; }
+  .settings-tab { white-space: nowrap; flex-shrink: 0; padding: 8px 14px; font-size: 13px; }
+
+  /* Welcome banner */
+  .welcome-banner { flex-direction: column; gap: 12px; text-align: start; }
+
+  /* Modal full screen on mobile */
+  .modal { max-width: 100%; max-height: 100vh; border-radius: 0; }
+  .modal-overlay { padding: 0; }
+
+  /* Filter bars stack */
+  .filters { flex-direction: column; }
+  .filters input, .filters select, .filters button { width: 100%; }
+
+  /* Inventory table → cards on mobile */
+  .inv-summary { grid-template-columns: repeat(2, 1fr); }
+
+  /* Smaller buttons */
+  .btn { padding: 8px 12px; font-size: 13px; }
+  .section-title { font-size: 16px; }
+
+  /* Top bar admin name hide */
+  .admin-top-bar h2 { font-size: 16px; }
+
+  /* Contract layout */
+  .contract-parties { grid-template-columns: 1fr !important; }
+}
+
+/* Hidden by default; only shown on mobile */
+.mobile-menu-btn { display: none; }

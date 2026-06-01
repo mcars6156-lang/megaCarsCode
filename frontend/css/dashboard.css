@@ -777,3 +777,81 @@ body.dark-theme {
 .car-picker-bar i { color:var(--primary); font-size:18px; }
 .car-picker-bar label { font-weight:600; white-space:nowrap; }
 .car-picker-bar select { flex:1; padding:8px 10px; border:1px solid var(--border); border-radius:6px; font-size:14px; }
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+/* RESPONSIVE — Mobile & Tablet                          */
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+
+@media (max-width: 1023px) {
+  :root { --sidebar-w: 220px; }
+  .main-content { padding: 14px; }
+  .stats-grid { grid-template-columns: repeat(2, 1fr); }
+  .form-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 767px) {
+  .sidebar {
+    position: fixed;
+    top: 0;
+    inset-inline-start: -100%;
+    width: 280px;
+    height: 100vh;
+    z-index: 999;
+    transition: inset-inline-start .3s;
+    box-shadow: 4px 0 20px rgba(0,0,0,.3);
+  }
+  .sidebar.open { inset-inline-start: 0; }
+
+  .main-content { margin-inline-start: 0 !important; padding: 12px; }
+
+  .mobile-menu-btn {
+    display: flex !important;
+    position: fixed;
+    top: 14px;
+    inset-inline-start: 14px;
+    z-index: 1001;
+    width: 42px;
+    height: 42px;
+    border-radius: 10px;
+    background: var(--primary);
+    color: #fff;
+    border: none;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    box-shadow: 0 4px 12px rgba(0,0,0,.25);
+    cursor: pointer;
+  }
+
+  .top-bar { padding-inline-start: 60px; }
+
+  .sidebar-backdrop {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,.5);
+    z-index: 998;
+    display: none;
+  }
+  .sidebar-backdrop.active { display: block; }
+
+  .stats-grid { grid-template-columns: 1fr; }
+  .form-grid { grid-template-columns: 1fr !important; }
+  .filters { flex-direction: column; }
+  .filters input, .filters select, .filters button { width: 100%; }
+
+  .content-section table { display: block; overflow-x: auto; white-space: nowrap; }
+  .modal { max-width: 100%; max-height: 100vh; border-radius: 0; }
+  .modal-overlay { padding: 0; }
+
+  .inv-summary { grid-template-columns: repeat(2, 1fr); }
+  .inv-toolbar { flex-direction: column; gap: 10px; }
+
+  .welcome-banner { flex-direction: column; gap: 12px; text-align: start; }
+
+  .btn { padding: 8px 12px; font-size: 13px; }
+  .section-title { font-size: 16px; }
+  .top-bar h2 { font-size: 16px; }
+
+  .contract-parties { grid-template-columns: 1fr !important; }
+}
+
+.mobile-menu-btn { display: none; }
