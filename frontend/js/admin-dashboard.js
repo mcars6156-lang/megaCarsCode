@@ -1021,19 +1021,25 @@ function printPaymentSchedule() {
       <div class="terms-title">عقد بيع سيارة بالتقسيط</div>
       <div class="terms-box">
         <ol>
-          <li>يتم دفع مقدمة العقد بالدولار عند توقيع الاتفاق.</li>
-          <li>يتم تسديد باقي المبلغ على شكل أقساط شهرية بالدولار حسب الاتفاق بين الطرفين.</li>
-          <li>ينظم هذا العقد من قبل المعرض ويكون موثقاً بين البائع والمشتري.</li>
-          <li>يتم تسليم وصل أمانة من قبل المشتري لصالح المعرض كضمان.</li>
-          <li>يلتزم المعرض بإعطاء وصل قبض شهري للمشتري عند كل دفعة.</li>
-          <li>يتم منح وكالة قيادة للمشتري لاستخدام السيارة لحين إتمام السداد.</li>
-          <li>لا يحق للمشتري بيع أو التنازل عن السيارة إلا بعد تسديد كامل المبلغ المتفق عليه.</li>
-          <li>لا يجوز استيفاء أي أتعاب أو رسوم إضافية عند نقل ملكية السيارة بعد إتمام السداد الكامل.</li>
-          <li>يدفع (المشتري) مبلغ (100) دولار للمعرض عند توقيع العقد + $100 أتعاب الناشر.</li>
-          <li>جواز سفر يبقة بالمعرض 6 اشهر (السيارة مرقم دهوك كامل).</li>
-          <li>يتم تسديد المبلغ المتبقي على شكل أقساط شهرية مقدار كل قسط <strong>(${monthly}) دولار</strong>.</li>
-          <li>على أن يبدأ سداد أول قسط بتاريخ <strong>${rows[0]?.date}</strong>.</li>
-          <li>ويكون موعد دفع الأقساط من اليوم الأول إلى اليوم الخامس من كل شهر حصراً.</li>
+          ${(() => {
+            const customTerms = (document.getElementById('setPaymentScheduleTerms')?.value || '').trim().split('\n').filter(t => t.trim());
+            const terms = customTerms.length > 0 ? customTerms : [
+              'يتم دفع مقدمة العقد بالدولار عند توقيع الاتفاق.',
+              'يتم تسديد باقي المبلغ على شكل أقساط شهرية بالدولار حسب الاتفاق بين الطرفين.',
+              'ينظم هذا العقد من قبل المعرض ويكون موثقاً بين البائع والمشتري.',
+              'يتم تسليم وصل أمانة من قبل المشتري لصالح المعرض كضمان.',
+              'يلتزم المعرض بإعطاء وصل قبض شهري للمشتري عند كل دفعة.',
+              'يتم منح وكالة قيادة للمشتري لاستخدام السيارة لحين إتمام السداد.',
+              'لا يحق للمشتري بيع أو التنازل عن السيارة إلا بعد تسديد كامل المبلغ المتفق عليه.',
+              'لا يجوز استيفاء أي أتعاب أو رسوم إضافية عند نقل ملكية السيارة بعد إتمام السداد الكامل.',
+              'يدفع (المشتري) مبلغ (100) دولار للمعرض عند توقيع العقد + \$100 أتعاب الناشر.',
+              'جواز سفر يبقة بالمعرض 6 اشهر (السيارة مرقم دهوك كامل).',
+              'يتم تسديد المبلغ المتبقي على شكل أقساط شهرية مقدار كل قسط <strong>(${monthly}) دولار</strong>.',
+              'على أن يبدأ سداد أول قسط بتاريخ <strong>${rows[0]?.date}</strong>.',
+              'ويكون موعد دفع الأقساط من اليوم الأول إلى اليوم الخامس من كل شهر حصراً.'
+            ];
+            return terms.map(t => '<li>' + t + '</li>').join('\n          ');
+          })()}
           ${g('contractNotes') ? `<li>${g('contractNotes')}</li>` : ''}
         </ol>
       </div>
@@ -1126,7 +1132,8 @@ function saveAllSettings() {
                  'setFontSize','setFontFamily','setFontWeight','setHeadingSize',
                  'setSidebarWidth','setRadius','setShadow','setDensity',
                  'setCompanyName','setCompanyLocation','setCompanyPhone1','setCompanyPhone2','setCompanyEmail','setCompanyTaxId',
-                 'setDefaultExchangeRate','setDefaultCurrency','setContractFee','setPublisherFee','setDateFormat'];
+                 'setDefaultExchangeRate','setDefaultCurrency','setContractFee','setPublisherFee','setDateFormat',
+                 'setPaymentScheduleTerms','setPaymentScheduleWitness','setPaymentScheduleManager'];
     const settings = {};
     ids.forEach(id => { const el = document.getElementById(id); if (el) settings[id] = el.value; });
     localStorage.setItem('megaCarsSettings', JSON.stringify(settings));
