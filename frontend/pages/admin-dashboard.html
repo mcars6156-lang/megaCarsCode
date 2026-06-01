@@ -199,6 +199,22 @@
                 </div>
 
                 <!-- Search/Filter -->
+                <!-- Bulk Import Section -->
+                <div style="background:#f0fdf4;border:2px dashed #22c55e;border-radius:var(--radius);padding:16px;margin-bottom:16px">
+                    <h4 style="margin:0 0 12px;color:#16a34a;font-size:14px"><i class="fas fa-file-excel"></i> <span data-i18n="admin.customers.bulkImport">Bulk Import from Excel</span></h4>
+                    <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+                        <input type="file" id="customerBulkFile" accept=".xlsx,.xls,.csv" style="flex:1;min-width:200px;padding:8px 12px;border:1px solid #22c55e;border-radius:6px;cursor:pointer">
+                        <button class="btn btn-success" onclick="importCustomersFromExcel()" style="background:#22c55e">
+                            <i class="fas fa-upload"></i> <span data-i18n="admin.customers.import">Import</span>
+                        </button>
+                        <button class="btn btn-secondary" onclick="downloadCustomerTemplate()">
+                            <i class="fas fa-download"></i> <span data-i18n="admin.customers.template">Template</span>
+                        </button>
+                    </div>
+                    <small style="color:#16a34a;display:block;margin-top:8px" data-i18n="admin.customers.importHelp">Expected columns: Name, Email, Phone, City, ID Type, ID Number</small>
+                </div>
+
+                <!-- Search/Filter -->
                 <div style="background:var(--card-bg);padding:16px;border-radius:var(--radius);margin-bottom:16px;display:flex;gap:10px;flex-wrap:wrap">
                     <input type="text" id="customerSearchInput" placeholder="Search by name, phone, or ID..." style="flex:1;min-width:200px;padding:8px 12px;border:1px solid var(--border);border-radius:6px" oninput="filterCustomers()">
                     <select id="customerFilterCity" style="padding:8px 12px;border:1px solid var(--border);border-radius:6px" onchange="filterCustomers()">
@@ -207,6 +223,7 @@
                 </div>
 
                 <div id="customersList" class="customers-table"></div>
+                <div id="importStatus" class="import-status hidden" style="background:var(--bg-secondary);padding:16px;border-radius:var(--radius);margin-top:16px"></div>
             </section>
 
             <section id="sales" class="admin-section hidden">
@@ -808,6 +825,7 @@
         </div>
     </div>
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.min.js"></script>
     <script src="../js/auth.js"></script>
     <script src="../js/admin-dashboard.js"></script>
 </body>

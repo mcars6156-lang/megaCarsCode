@@ -1743,3 +1743,114 @@ async function deleteCustomer(customerId) {
         alert('Error deleting customer');
     }
 }
+
+// ── Bulk Customer Import from Excel ─────────────────
+
+async function importCustomersFromExcel() {
+    const file = document.getElementById('customerBulkFile').files[0];
+    if (!file) {
+        alert('Please select an Excel file');
+        return;
+    }
+
+    const statusEl = document.getElementById('importStatus');
+    statusEl.classList.remove('hidden');
+    statusEl.innerHTML = '<p style="color:var(--primary)"><i class="fas fa-spinner fa-spin"></i> Parsing file...</p>';
+
+    try {
+        const reader = new FileReader();
+        reader.onload = async (e) => {
+            try {
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, { type: 'array' });
+                const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+                const rows = XLSX.utils.sheet_to_json(worksheet);
+
+                if (rows.length === 0) {
+                    statusEl.innerHTML = '<p style="color:var(--danger)"><i class="fas fa-exclamation-circle"></i> No data found in Excel file</p>';
+                    return;
+                }
+
+                statusEl.innerHTML = `<p style="color:var(--primary)"><i class="fas fa-spinner fa-spin"></i> Importing ${rows.length} customers...</p>`;
+
+                let success = 0, failed = 0;
+                const errors = [];
+
+                for (const [idx, row] of rows.entries()) {
+                    try {
+                        const name = (row['Name'] || row['name'] || '').trim();
+                        const email = (row['Email'] || row['email'] || '').trim();
+                        const phone = (row['Phone'] || row['phone'] || '').trim();
+                        const city = (row['City'] || row['city'] || '').trim();
+                        const idType = (row['ID Type'] || row['idType'] || 'national').trim().toLowerCase();
+                        const idNumber = (row['ID Number'] || row['idNumber'] || '').trim();
+
+                        if (!name || !phone) {
+                            failed++;
+                            errors.push(`Row ${idx + 2}: Missing name or phone`);
+                            continue;
+                        }
+
+                        const token = localStorage.getItem('token');
+                        const res = await fetch(`${API_BASE_URL}/users`, {
+                            method: 'POST',
+                            headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ name, email, phone, city, role: 'user' })
+                        });
+
+                        if (res.ok) {
+                            success++;
+                        } else {
+                            failed++;
+                            errors.push(`Row ${idx + 2}: ${name} - ${await res.text()}`);
+                        }
+                    } catch (err) {
+                        failed++;
+                        errors.push(`Row ${idx + 2}: ${err.message}`);
+                    }
+                }
+
+                let resultHTML = `
+                    <div style="padding:12px;border-radius:6px;background:var(--bg-secondary)">
+                        <h4 style="margin:0 0 8px"><i class="fas fa-check-circle" style="color:var(--success)"></i> Import Complete</h4>
+                        <p style="margin:0"><strong style="color:var(--success)">${success} customers</strong> added successfully</p>
+                        ${failed > 0 ? `<p style="margin:8px 0 0;color:var(--danger)"><strong>${failed} customers</strong> failed to import</p>` : ''}
+                        ${errors.length > 0 ? `<details style="margin-top:12px"><summary style="cursor:pointer;color:var(--danger)">Show errors (${errors.length})</summary><ul style="font-size:12px;margin:8px 0 0;padding-left:20px;color:var(--text-muted)">${errors.map(e => `<li>${e}</li>`).join('')}</ul></details>` : ''}
+                    </div>`;
+
+                statusEl.innerHTML = resultHTML;
+
+                if (success > 0) {
+                    loadCustomers();
+                    document.getElementById('customerBulkFile').value = '';
+                }
+            } catch (err) {
+                statusEl.innerHTML = `<p style="color:var(--danger)"><i class="fas fa-exclamation-circle"></i> Error reading file: ${err.message}</p>`;
+            }
+        };
+        reader.readAsArrayBuffer(file);
+    } catch (err) {
+        statusEl.innerHTML = `<p style="color:var(--danger)"><i class="fas fa-exclamation-circle"></i> ${err.message}</p>`;
+    }
+}
+
+function downloadCustomerTemplate() {
+    const template = [
+        { Name: 'محمد علي', Email: 'mohammad@example.com', Phone: '07501234567', City: 'دهوك', 'ID Type': 'National', 'ID Number': '12345678901' },
+        { Name: 'سارة أحمد', Email: 'sarah@example.com', Phone: '07709876543', City: 'بغداد', 'ID Type': 'Passport', 'ID Number': 'PS123456' }
+    ];
+
+    const worksheet = XLSX.utils.json_to_sheet(template);
+    worksheet['!cols'] = [
+        { wch: 20 },
+        { wch: 25 },
+        { wch: 15 },
+        { wch: 15 },
+        { wch: 15 },
+        { wch: 18 }
+    ];
+
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Customers');
+    XLSX.writeFile(workbook, 'customer-import-template.xlsx');
+}
