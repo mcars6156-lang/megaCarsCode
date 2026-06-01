@@ -1431,82 +1431,79 @@ async function printExpensesReport() {
 // ── Customers Report ──
 
 async function viewCustomersReport() {
-    const [users, sales] = await Promise.all([fetchAllUsers(), fetchAllSales()]);
-    const customers = users.filter(u => u.role !== 'admin');
-    const purchasesByUser = {};
-    sales.forEach(s => {
-        const id = s.buyer?._id;
-        if (!id) return;
-        purchasesByUser[id] = purchasesByUser[id] || { count: 0, total: 0 };
-        purchasesByUser[id].count++;
-        purchasesByUser[id].total += (s.salePrice || 0);
-    });
+    try {
+        const token = localStorage.getItem('token');
+        const customers = await fetch(`${API_BASE_URL}/customers`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        }).then(r => r.json());
 
-    document.getElementById('reportViewer').classList.remove('hidden');
-    document.getElementById('reportViewer').innerHTML = `
-        <h3 class="report-section-title">${t('reports.customers')}</h3>
-        <div class="report-summary">
-            <div class="report-stat"><div class="stat-icon blue"><i class="fas fa-users"></i></div><div class="stat-info"><h3>${t('admin.stat.users')}</h3><p>${customers.length}</p></div></div>
-            <div class="report-stat"><div class="stat-icon green"><i class="fas fa-shopping-bag"></i></div><div class="stat-info"><h3>${t('admin.stat.sales')}</h3><p>${sales.length}</p></div></div>
-        </div>
-        <table><thead><tr>
-            <th>${t('admin.users.name')}</th><th>${t('admin.users.phone')}</th>
-            <th>${t('admin.users.city')}</th><th>Purchases</th><th>Total Spent</th>
-        </tr></thead><tbody>${customers.map(u => {
-            const stats = purchasesByUser[u._id] || { count: 0, total: 0 };
-            return `<tr>
-                <td><strong>${u.name}</strong></td>
-                <td>${u.phone||'–'}</td>
-                <td>${u.city||'–'}</td>
-                <td>${stats.count}</td>
-                <td><strong>$${stats.total.toLocaleString()}</strong></td>
-            </tr>`;
-        }).join('')}</tbody></table>`;
+        document.getElementById('reportViewer').classList.remove('hidden');
+        document.getElementById('reportViewer').innerHTML = `
+            <h3 class="report-section-title">${t('reports.customers')}</h3>
+            <div class="report-summary">
+                <div class="report-stat"><div class="stat-icon blue"><i class="fas fa-users"></i></div><div class="stat-info"><h3>${t('admin.customers.title')}</h3><p>${customers.length}</p></div></div>
+            </div>
+            <table><thead><tr>
+                <th>${t('admin.customers.name')}</th>
+                <th>${t('admin.users.phone')}</th>
+                <th>${t('admin.users.city')}</th>
+                <th>ID Type</th>
+                <th>ID Number</th>
+            </tr></thead><tbody>${customers.map(c => `<tr>
+                <td><strong>${c.name}</strong></td>
+                <td>${c.phone||'–'}</td>
+                <td>${c.city||'–'}</td>
+                <td>${c.idType||'–'}</td>
+                <td>${c.idNumber||'–'}</td>
+            </tr>`).join('')}</tbody></table>`;
+    } catch (e) {
+        console.error(e);
+        document.getElementById('reportViewer').innerHTML = `<p style="color:var(--danger)">Error loading customers report</p>`;
+    }
 }
 
 async function printCustomersReport() {
-    const [users, sales] = await Promise.all([fetchAllUsers(), fetchAllSales()]);
-    const customers = users.filter(u => u.role !== 'admin');
-    const purchasesByUser = {};
-    sales.forEach(s => {
-        const id = s.buyer?._id;
-        if (!id) return;
-        purchasesByUser[id] = purchasesByUser[id] || { count: 0, total: 0 };
-        purchasesByUser[id].count++;
-        purchasesByUser[id].total += (s.salePrice || 0);
-    });
+    try {
+        const token = localStorage.getItem('token');
+        const customers = await fetch(`${API_BASE_URL}/customers`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        }).then(r => r.json());
 
-    openPrintWindow('Customers Report — تقرير العملاء', `
-        <div class="kpi-row">
-            <div class="kpi"><strong>${customers.length}</strong><span>Total Customers</span></div>
-            <div class="kpi"><strong>${sales.length}</strong><span>Total Sales</span></div>
-        </div>
-        <table>
-            <thead><tr><th>#</th><th>Name</th><th>Email</th><th>Phone</th><th>City</th><th>Purchases</th><th>Total Spent ($)</th></tr></thead>
-            <tbody>${customers.map((u,i) => {
-                const stats = purchasesByUser[u._id] || { count: 0, total: 0 };
-                return `<tr><td>${i+1}</td><td><strong>${u.name}</strong></td><td>${u.email||''}</td><td>${u.phone||''}</td><td>${u.city||''}</td><td>${stats.count}</td><td>${stats.total.toLocaleString()}</td></tr>`;
-            }).join('')}</tbody>
-        </table>`);
+        openPrintWindow('Customers Report — تقرير العملاء', `
+            <div class="kpi-row">
+                <div class="kpi"><strong>${customers.length}</strong><span>Total Customers</span></div>
+            </div>
+            <table>
+                <thead><tr><th>#</th><th>Name</th><th>Email</th><th>Phone</th><th>City</th><th>ID Type</th><th>ID Number</th></tr></thead>
+                <tbody>${customers.map((c,i) => `<tr><td>${i+1}</td><td><strong>${c.name}</strong></td><td>${c.email||''}</td><td>${c.phone||''}</td><td>${c.city||''}</td><td>${c.idType||''}</td><td>${c.idNumber||''}</td></tr>`).join('')}</tbody>
+            </table>`);
+    } catch (e) {
+        console.error(e);
+        alert('Error loading customers report');
+    }
 }
 
 async function exportCustomersCSV() {
-    const [users, sales] = await Promise.all([fetchAllUsers(), fetchAllSales()]);
-    const customers = users.filter(u => u.role !== 'admin');
-    const purchasesByUser = {};
-    sales.forEach(s => {
-        const id = s.buyer?._id;
-        if (!id) return;
-        purchasesByUser[id] = purchasesByUser[id] || { count: 0, total: 0 };
-        purchasesByUser[id].count++;
-        purchasesByUser[id].total += (s.salePrice || 0);
-    });
-    const headers = ['Name','Email','Phone','City','Address','Role','Purchases','Total Spent ($)'];
-    const rows = customers.map(u => {
-        const stats = purchasesByUser[u._id] || { count: 0, total: 0 };
-        return [u.name, u.email||'', u.phone||'', u.city||'', u.address||'', u.role, stats.count, stats.total];
-    });
-    exportToCSV([headers, ...rows], `customers-${new Date().toISOString().split('T')[0]}.csv`);
+    try {
+        const token = localStorage.getItem('token');
+        const customers = await fetch(`${API_BASE_URL}/customers`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        }).then(r => r.json());
+
+        const headers = ['Name', 'Email', 'Phone', 'City', 'Address', 'ID Type', 'ID Number'];
+        const rows = customers.map(c => [
+            c.name,
+            c.email||'',
+            c.phone||'',
+            c.city||'',
+            c.address||'',
+            c.idType||'',
+            c.idNumber||''
+        ]);
+        exportToCSV([headers, ...rows], `customers-${new Date().toISOString().split('T')[0]}.csv`);
+    } catch (e) {
+        alert('Error exporting customers: ' + e.message);
+    }
 }
 
 // ── Shared Print Window ──
@@ -1575,28 +1572,11 @@ let _customersCache = [];
 
 async function loadCustomers() {
     try {
-        const [users, sales] = await Promise.all([
-            fetch(`${API_BASE_URL}/users`, { headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` } }).then(r => r.json()),
-            fetch(`${API_BASE_URL}/admin/reports/sales`, { headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` } }).then(r => r.json())
-        ]);
+        const customers = await fetch(`${API_BASE_URL}/customers`, {
+            headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+        }).then(r => r.json());
 
-        const customers = users.filter(u => u.role !== 'admin');
-        const purchasesByUser = {};
-        sales.forEach(s => {
-            const id = s.buyer?._id;
-            if (id) {
-                purchasesByUser[id] = purchasesByUser[id] || { count: 0, total: 0 };
-                purchasesByUser[id].count++;
-                purchasesByUser[id].total += (s.salePrice || 0);
-            }
-        });
-
-        _customersCache = customers.map(c => ({
-            ...c,
-            purchases: purchasesByUser[c._id]?.count || 0,
-            totalSpent: purchasesByUser[c._id]?.total || 0
-        }));
-
+        _customersCache = customers;
         renderCustomersTable(_customersCache);
         updateCityFilter();
     } catch (e) { console.error('Error loading customers:', e); }
@@ -1616,8 +1596,7 @@ function renderCustomersTable(customers) {
                     <th style="padding:12px;background:var(--page-bg);border-bottom:2px solid var(--border);text-align:start">${t('admin.customers.name')}</th>
                     <th style="padding:12px;background:var(--page-bg);border-bottom:2px solid var(--border);text-align:start">${t('admin.users.phone')}</th>
                     <th style="padding:12px;background:var(--page-bg);border-bottom:2px solid var(--border);text-align:start">${t('admin.users.city')}</th>
-                    <th style="padding:12px;background:var(--page-bg);border-bottom:2px solid var(--border);text-align:center">Purchases</th>
-                    <th style="padding:12px;background:var(--page-bg);border-bottom:2px solid var(--border);text-align:start">Total Spent</th>
+                    <th style="padding:12px;background:var(--page-bg);border-bottom:2px solid var(--border);text-align:start">ID Number</th>
                     <th style="padding:12px;background:var(--page-bg);border-bottom:2px solid var(--border);text-align:center">${t('admin.cars.actions')}</th>
                 </tr>
             </thead>
@@ -1627,10 +1606,9 @@ function renderCustomersTable(customers) {
                         <td style="padding:12px"><strong>${c.name}</strong></td>
                         <td style="padding:12px">${c.phone||'–'}</td>
                         <td style="padding:12px">${c.city||'–'}</td>
-                        <td style="padding:12px;text-align:center"><span style="background:var(--bg-secondary);padding:4px 8px;border-radius:4px">${c.purchases}</span></td>
-                        <td style="padding:12px"><strong>$${c.totalSpent.toLocaleString()}</strong></td>
+                        <td style="padding:12px">${c.idNumber||'–'}</td>
                         <td style="padding:12px;text-align:center;display:flex;gap:6px;justify-content:center">
-                            <button class="btn btn-primary btn-small" onclick="openCustomerModal('${c._id}', '${c.name.replace(/'/g, "\\'")}', '${c.email||''}', '${c.phone||''}', '${c.city||''}')">
+                            <button class="btn btn-primary btn-small" onclick="openCustomerModal('${c._id}')">
                                 <i class="fas fa-edit"></i>
                             </button>
                             <button class="btn btn-danger btn-small" onclick="deleteCustomer('${c._id}')">
@@ -1666,21 +1644,43 @@ function filterCustomers() {
     renderCustomersTable(filtered);
 }
 
-function openCustomerModal(customerId = '', name = '', email = '', phone = '', city = '') {
+async function openCustomerModal(customerId = '') {
     document.getElementById('customerId').value = customerId;
-    document.getElementById('customerName').value = name;
-    document.getElementById('customerEmail').value = email;
-    document.getElementById('customerPhone').value = phone;
-    document.getElementById('customerCity').value = city;
+    document.getElementById('customerName').value = '';
+    document.getElementById('customerEmail').value = '';
+    document.getElementById('customerPhone').value = '';
+    document.getElementById('customerCity').value = '';
     document.getElementById('customerIdType').value = 'national';
     document.getElementById('customerIdNumber').value = '';
     document.getElementById('customerDob').value = '';
     document.getElementById('customerAddress').value = '';
     document.getElementById('customerNotes').value = '';
-    
+
     const h = document.querySelector('#customerModal .modal-title span');
     if (h) h.textContent = customerId ? t('admin.customers.edit') : t('admin.customers.add');
-    
+
+    if (customerId) {
+        try {
+            const token = localStorage.getItem('token');
+            const customer = await fetch(`${API_BASE_URL}/customers/${customerId}`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            }).then(r => r.json());
+
+            document.getElementById('customerName').value = customer.name || '';
+            document.getElementById('customerEmail').value = customer.email || '';
+            document.getElementById('customerPhone').value = customer.phone || '';
+            document.getElementById('customerCity').value = customer.city || '';
+            document.getElementById('customerIdType').value = customer.idType || 'national';
+            document.getElementById('customerIdNumber').value = customer.idNumber || '';
+            document.getElementById('customerDob').value = customer.dob ? customer.dob.split('T')[0] : '';
+            document.getElementById('customerAddress').value = customer.address || '';
+            document.getElementById('customerNotes').value = customer.notes || '';
+        } catch (e) {
+            alert('Error loading customer: ' + e.message);
+            return;
+        }
+    }
+
     document.getElementById('customerModal').classList.remove('hidden');
     document.body.style.overflow = 'hidden';
 }
@@ -1697,7 +1697,11 @@ async function saveCustomer() {
         email: document.getElementById('customerEmail').value,
         phone: document.getElementById('customerPhone').value,
         city: document.getElementById('customerCity').value,
-        address: document.getElementById('customerAddress').value
+        address: document.getElementById('customerAddress').value,
+        idType: document.getElementById('customerIdType').value,
+        idNumber: document.getElementById('customerIdNumber').value,
+        dob: document.getElementById('customerDob').value || undefined,
+        notes: document.getElementById('customerNotes').value
     };
 
     if (!data.name || !data.phone) {
@@ -1707,14 +1711,15 @@ async function saveCustomer() {
 
     try {
         const token = localStorage.getItem('token');
-        const res = await fetch(`${API_BASE_URL}/users/${id || 'new'}`, {
+        const endpoint = id ? `${API_BASE_URL}/customers/${id}` : `${API_BASE_URL}/customers`;
+        const res = await fetch(endpoint, {
             method: id ? 'PUT' : 'POST',
             headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
             body: JSON.stringify(data)
         });
 
         if (!res.ok) throw new Error(await res.text());
-        
+
         closeCustomerModal();
         loadCustomers();
         alert(id ? 'Customer updated' : 'Customer added');
@@ -1729,13 +1734,13 @@ async function deleteCustomer(customerId) {
 
     try {
         const token = localStorage.getItem('token');
-        const res = await fetch(`${API_BASE_URL}/users/${customerId}`, {
+        const res = await fetch(`${API_BASE_URL}/customers/${customerId}`, {
             method: 'DELETE',
             headers: { 'Authorization': `Bearer ${token}` }
         });
 
         if (!res.ok) throw new Error(await res.text());
-        
+
         loadCustomers();
         alert('Customer deleted');
     } catch (e) {
@@ -1792,10 +1797,10 @@ async function importCustomersFromExcel() {
                         }
 
                         const token = localStorage.getItem('token');
-                        const res = await fetch(`${API_BASE_URL}/users`, {
+                        const res = await fetch(`${API_BASE_URL}/customers`, {
                             method: 'POST',
                             headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ name, email, phone, city, role: 'user' })
+                            body: JSON.stringify({ name, email, phone, city, idType, idNumber })
                         });
 
                         if (res.ok) {
